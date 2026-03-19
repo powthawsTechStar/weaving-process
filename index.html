@@ -1,0 +1,2275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Textile Pro</title>
+
+  <!-- PWA -->
+  <meta name="application-name" content="Textile Pro">
+  <meta name="description" content="Production Order Management for Textile & Weaving">
+  <meta name="theme-color" content="#1e3a8a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Textile Pro">
+  <link rel="manifest" id="pwa-manifest">
+
+  <!-- PWA Icons (inline SVG as data URI) -->
+  <link rel="apple-touch-icon" id="pwa-icon-link">
+  <link rel="icon" type="image/svg+xml" id="pwa-favicon">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <!-- html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Excel Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Icons -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <style>
+    /* ── THEME VARIABLES ── */
+    :root {
+      --bg-app: #f1f5f9;
+      --bg-sidebar: #ffffff;
+      --bg-card: #ffffff;
+      --bg-table-header: #f8fafc;
+      --bg-table-row: #ffffff;
+      --bg-table-alt: #fafafa;
+      --bg-input: transparent;
+      --bg-input-focus: #eff6ff;
+
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --text-inverse: #ffffff;
+
+      --border-light: #e2e8f0;
+      --border-medium: #cbd5e1;
+      --border-dark: #94a3b8;
+
+      --brand-primary: #1e3a8a;
+      --brand-secondary: #f59e0b;
+
+      --status-pending-bg: #fffbeb;
+      --status-pending-text: #b45309;
+      --status-pending-border: #fbbf24;
+
+      --status-inprog-bg: #eff6ff;
+      --status-inprog-text: #1d4ed8;
+      --status-inprog-border: #93c5fd;
+
+      --status-dispatch-bg: #f0fdfa;
+      --status-dispatch-text: #0f766e;
+      --status-dispatch-border: #5eead4;
+
+      --status-done-bg: #f0fdf4;
+      --status-done-text: #15803d;
+      --status-done-border: #86efac;
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #0f172a;
+      --bg-sidebar: #1e293b;
+      --bg-card: #1e293b;
+      --bg-table-header: #334155;
+      --bg-table-row: #1e293b;
+      --bg-table-alt: #0f172a;
+      --bg-input: #334155;
+      --bg-input-focus: #475569;
+
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+
+      --border-light: #334155;
+      --border-medium: #475569;
+      --border-dark: #64748b;
+
+      --brand-primary: #3b82f6;
+
+      --status-pending-bg: rgba(180, 83, 9, 0.2);
+      --status-pending-text: #fbbf24;
+      --status-pending-border: #b45309;
+
+      --status-inprog-bg: rgba(29, 78, 216, 0.2);
+      --status-inprog-text: #93c5fd;
+      --status-inprog-border: #1d4ed8;
+
+      --status-dispatch-bg: rgba(15, 118, 110, 0.2);
+      --status-dispatch-text: #5eead4;
+      --status-dispatch-border: #0f766e;
+
+      --status-done-bg: rgba(21, 128, 61, 0.2);
+      --status-done-text: #86efac;
+      --status-done-border: #15803d;
+    }
+
+    /* ── FORCE COLOUR PRINT ── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-app);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    /* ── APP LAYOUT ── */
+    .sidebar {
+      width: 260px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-light);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      z-index: 100;
+      transition: transform 0.3s, background-color 0.3s, border-color 0.3s;
+    }
+
+    .main-content {
+      margin-left: 260px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-y: auto;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar-header {
+      padding: 24px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .brand-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--brand-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-dot svg {
+      stroke: var(--brand-secondary);
+      fill: none;
+      stroke-width: 2;
+      width: 20px;
+      height: 20px;
+    }
+
+    .brand-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .brand-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .sidebar-nav {
+      padding: 20px 10px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-input-focus);
+      color: var(--brand-primary);
+    }
+
+    .nav-item.active {
+      background: var(--brand-primary);
+      color: #fff;
+    }
+
+    .nav-item i {
+      width: 18px;
+      height: 18px;
+    }
+
+    .sidebar-footer {
+      padding: 20px;
+      border-top: 1px solid var(--border-light);
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px;
+      background: var(--bg-app);
+      border-radius: 20px;
+      border: 1px solid var(--border-light);
+      cursor: pointer;
+    }
+
+    .theme-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      color: var(--text-muted);
+      transition: all 0.3s;
+    }
+
+    .theme-btn.active {
+      background: var(--bg-card);
+      color: var(--text-main);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ── TOP NAV ── */
+    .topnav {
+      height: 70px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-sidebar);
+      border-bottom: 1px solid var(--border-light);
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      backdrop-filter: blur(10px);
+    }
+
+    .top-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .nav-btns {
+      display: flex;
+      gap: 10px;
+    }
+
+    .nbtn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .nbtn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .nbtn:active {
+      transform: translateY(0);
+    }
+
+    .nbtn i {
+      width: 14px;
+      height: 14px;
+    }
+
+    .nbtn-p {
+      background: var(--brand-primary);
+      color: #fff;
+    }
+
+    .nbtn-s {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1.5px solid var(--border-medium);
+    }
+
+    .nbtn-success {
+      background: #10b981;
+      color: #fff;
+    }
+
+    /* ── A4 CARD (DOCUMENT) ── */
+    .doc-container {
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .a4 {
+      width: 960px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      font-size: 12px;
+      color: var(--text-main);
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .a4 input,
+    .a4 textarea {
+      color: var(--text-main);
+    }
+
+    .a4 input::placeholder,
+    .a4 textarea::placeholder {
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+
+    /* ── HEADER BAND ── */
+    .doc-header {
+      padding: 24px 32px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      border-bottom: 4px solid var(--brand-secondary);
+      background: var(--bg-card);
+    }
+
+    .dh-left {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .logo-box {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background: var(--brand-primary);
+    }
+
+    .logo-box i {
+      width: 32px;
+      height: 32px;
+      color: var(--brand-secondary);
+    }
+
+    .co-name {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--brand-primary);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .co-tag {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .doc-title {
+      margin-top: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      letter-spacing: 0.5px;
+    }
+
+    .dh-right {
+      text-align: right;
+    }
+
+    .por-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 6px 16px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      background: var(--brand-primary);
+      color: #fff;
+    }
+
+    .meta-line {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .meta-line input {
+      background: var(--bg-input);
+      border: 1px solid transparent;
+      outline: none;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-main);
+      width: 130px;
+      padding: 2px 4px;
+      transition: all 0.2s;
+    }
+
+    .meta-line input:focus {
+      border-color: var(--border-medium);
+      background: var(--bg-input-focus);
+    }
+
+    /* ── STATUS BAR ── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 32px;
+      border-bottom: 1px solid var(--border-light);
+      background: var(--bg-table-header);
+    }
+
+    .status-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1.5px solid;
+      cursor: pointer;
+      transition: all .2s;
+      user-select: none;
+      letter-spacing: .3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chip.pending {
+      color: var(--status-pending-text);
+      background: var(--status-pending-bg);
+      border-color: var(--status-pending-border);
+    }
+
+    .chip.inprog {
+      color: var(--status-inprog-text);
+      background: var(--status-inprog-bg);
+      border-color: var(--status-inprog-border);
+    }
+
+    .chip.dispatch {
+      color: var(--status-dispatch-text);
+      background: var(--status-dispatch-bg);
+      border-color: var(--status-dispatch-border);
+    }
+
+    .chip.done {
+      color: var(--status-done-text);
+      background: var(--status-done-bg);
+      border-color: var(--status-done-border);
+    }
+
+    .chip.on {
+      color: #fff !important;
+      background: var(--brand-primary) !important;
+      border-color: var(--brand-primary) !important;
+      box-shadow: 0 4px 10px rgba(30, 58, 138, 0.3);
+      transform: scale(1.05);
+    }
+
+    /* ── SECTION LABEL ── */
+    .sec {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: none;
+      color: var(--brand-primary);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--brand-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .sec i {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* ── BODY PADDING ── */
+    .doc-body {
+      padding: 24px 32px;
+    }
+
+    /* ── ORDER DETAILS CARD ── */
+    .od-card {
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      background: var(--bg-table-header);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    }
+
+    .od-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .od-cell {
+      padding: 12px 16px;
+      border-right: 1px solid var(--border-light);
+      border-bottom: 1px solid var(--border-light);
+      position: relative;
+      transition: background-color 0.2s;
+    }
+
+    .od-cell:nth-child(3n) {
+      border-right: none;
+    }
+
+    .od-cell:nth-last-child(-n+3) {
+      border-bottom: none;
+    }
+
+    .od-cell.wide {
+      grid-column: span 2;
+    }
+
+    .od-lbl {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .od-val {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    .od-val input {
+      width: 100%;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .od-cell:focus-within {
+      background: var(--bg-input-focus);
+    }
+
+    .od-cell:focus-within .od-lbl {
+      color: var(--brand-primary);
+    }
+
+    .od-cell.hi {
+      background: var(--status-pending-bg);
+    }
+
+    .od-cell.hi .od-lbl {
+      color: var(--status-pending-text);
+    }
+
+    /* ── TRANSACTION TABLE ── */
+    .tbl-card {
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .sh td {
+      padding: 8px 6px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: none;
+      color: #fff;
+      border-right: 1px solid rgba(255, 255, 255, .2);
+    }
+
+    .sh td:last-child {
+      border-right: none;
+    }
+
+    .sh-out {
+      background-color: #b45309;
+    }
+
+    .sh-in {
+      background-color: #0f766e;
+    }
+
+    .sh-bill {
+      background-color: #5b21b6;
+    }
+
+    .cl th {
+      padding: 10px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: var(--bg-table-header);
+      text-align: center;
+      border-bottom: 1px solid var(--border-light);
+      border-right: 1px solid var(--border-light);
+    }
+
+    .cl th:last-child {
+      border-right: none;
+    }
+
+    .cl th.dv {
+      border-right: 2px solid var(--border-medium);
+    }
+
+    tbody tr {
+      transition: background .2s;
+      background: var(--bg-table-row);
+    }
+
+    tbody tr:hover {
+      background: var(--bg-table-alt);
+    }
+
+    tbody tr:nth-child(even) td {
+      background: var(--bg-table-alt);
+    }
+
+    tbody tr td {
+      border-bottom: 1px solid var(--border-light);
+      border-right: 1px solid var(--border-light);
+      padding: 0;
+      height: 38px;
+      vertical-align: middle;
+      position: relative;
+    }
+
+    tbody tr td:last-child {
+      border-right: none;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr td.dv {
+      border-right: 2px solid var(--border-medium);
+    }
+
+    tbody td input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--text-main);
+      text-align: center;
+      padding: 0 6px;
+      outline: none;
+      transition: background 0.2s;
+    }
+
+    tbody td input:focus {
+      background: var(--bg-input-focus) !important;
+    }
+
+    /* Totals */
+    .tfoot-r td {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--brand-primary);
+      text-align: center;
+      padding: 12px 6px;
+      border-top: 2px solid var(--brand-primary);
+      border-right: 1px solid var(--border-light);
+      background: var(--bg-table-header);
+    }
+
+    .tfoot-r td:last-child {
+      border-right: none;
+    }
+
+    .tfoot-r td.dv {
+      border-right: 2px solid var(--border-medium);
+    }
+
+    .tfoot-r td.lbl {
+      text-align: left;
+      padding-left: 14px;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: var(--bg-table-header);
+      border-top: 1px dashed var(--border-medium);
+    }
+
+    .addrow-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+      letter-spacing: .5px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      transition: all .15s;
+      text-transform: uppercase;
+    }
+
+    .addrow-btn:hover {
+      background: var(--bg-input-focus);
+      color: var(--brand-primary);
+    }
+
+    .addrow-btn i {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* ── BOTTOM GRID ── */
+    .bot-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    /* Remarks */
+    .rbox {
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--bg-card);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .rbox-head {
+      padding: 10px 16px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: none;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rbox-head i {
+      width: 14px;
+      height: 14px;
+    }
+
+    .rbox-instructions {
+      background-color: var(--brand-primary);
+    }
+
+    .rbox-qc {
+      background-color: #0f766e;
+    }
+
+    .rbox-defect {
+      background-color: #b45309;
+    }
+
+    .rbox textarea {
+      width: 100%;
+      border: none;
+      resize: none;
+      outline: none;
+      background: transparent;
+      padding: 14px 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--text-main);
+      flex: 1;
+      min-height: 80px;
+      line-height: 1.6;
+    }
+
+    .rbox textarea:focus {
+      background: var(--bg-input-focus);
+    }
+
+    /* ── SIGNATURES ── */
+    .sigs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 0;
+    }
+
+    .sig {
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 16px;
+      background: var(--bg-table-header);
+      text-align: center;
+    }
+
+    .sig-lbl {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .sig-name-input {
+      width: 100%;
+      border: none;
+      background: transparent;
+      outline: none;
+      border-bottom: 1px solid var(--border-medium);
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      transition: border-color 0.2s;
+    }
+
+    .sig-name-input:focus {
+      border-color: var(--brand-primary);
+    }
+
+    .sig-line {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* ── FOOTER ── */
+    .doc-footer {
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border-light);
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg-table-header);
+    }
+
+    .doc-footer strong {
+      color: var(--brand-primary);
+    }
+
+    /* ── TOAST NOTIFICATION ── */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--text-main);
+      color: var(--bg-card);
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* ══ PRINT / PDF — A4 Landscape, single page ══ */
+    @media print {
+
+      @page { size: A4 landscape; margin: 5mm; }
+
+      *, *::before, *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      body > * { display: none !important; }
+
+      .main-content {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .sidebar, .topnav, .action-bar, #addRowBar,
+      .install-banner, .toast, .status-bar,
+      .hide-on-print, #page-dashboard {
+        display: none !important;
+      }
+
+      #page-editor    { display: block !important; }
+      .doc-container  { padding: 0 !important; display: block !important; }
+
+      body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+
+      .a4 {
+        width: 100% !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        background: #fff !important;
+        animation: none !important;
+        font-size: 10px !important;
+        overflow: visible !important;
+      }
+
+      :root, [data-theme="dark"] {
+        --bg-card: #fff;
+        --bg-table-header: #f0f0f0;
+        --bg-table-row: #fff;
+        --bg-table-alt: #f9f9f9;
+        --text-main: #000;
+        --text-muted: #444;
+        --border-light: #ddd;
+        --border-medium: #bbb;
+        --brand-primary: #1e3a8a;
+        --brand-secondary: #f59e0b;
+      }
+
+      .doc-body { padding: 4px 8px !important; }
+
+      .sec {
+        font-size: 9px !important;
+        margin: 3px 0 2px !important;
+        padding-bottom: 2px !important;
+      }
+      .sec i { display: none !important; }
+
+      .od-card      { margin-bottom: 3px !important; }
+      .od-grid      { grid-template-columns: repeat(6,1fr) !important; }
+      .od-cell      { padding: 2px 4px !important; }
+      .od-cell.wide { grid-column: span 2 !important; }
+      .od-lbl       { font-size: 6.5px !important; margin-bottom: 1px !important; letter-spacing: 0 !important; }
+      .od-val       { font-size: 10px !important; font-weight: 700 !important; }
+      .od-val input {
+        font-size: 10px !important; font-weight: 700 !important;
+        color: #000 !important; background: transparent !important;
+        border: none !important; width: 100% !important; padding: 0 !important;
+      }
+      .od-cell.hi { background: #fefce8 !important; }
+
+      .rbox              { margin-bottom: 3px !important; }
+      .rbox-head         { padding: 2px 8px !important; font-size: 8px !important; color: #fff !important; letter-spacing: 0 !important; text-transform: none !important; }
+      .rbox-instructions { background-color: #0ea5e9 !important; }
+      .rbox textarea {
+        min-height: unset !important;
+        max-height: none !important;
+        height: auto !important;
+        font-size: 11px !important;
+        line-height: 1.5 !important;
+        padding: 3px 8px !important;
+        overflow: visible !important;
+        color: #000 !important;
+        background: transparent !important;
+        border: none !important;
+        width: 100% !important;
+        resize: none !important;
+        display: block !important;
+        white-space: pre-wrap !important;
+        word-break: break-word !important;
+      }
+
+      .tbl-card { margin-bottom: 0 !important; overflow: visible !important; }
+      table     { width: 100% !important; font-size: 9px !important; }
+
+      .sh td   { padding: 3px 3px !important; font-size: 9px !important; color: #fff !important; }
+      .sh-out  { background-color: #b45309 !important; }
+      .sh-in   { background-color: #0f766e !important; }
+      .sh-bill { background-color: #5b21b6 !important; }
+
+      .cl th {
+        padding: 2px 3px !important; font-size: 8px !important;
+        background: #f0f0f0 !important; color: #333 !important;
+      }
+
+      tbody tr td               { height: 16px !important; padding: 0 !important; }
+      tbody tr:nth-child(even) td { background: #fafafa !important; }
+      tbody td input {
+        font-size: 9px !important; color: #000 !important;
+        background: transparent !important; border: none !important;
+        width: 100% !important; height: 100% !important;
+        padding: 0 2px !important; text-align: center !important;
+      }
+
+      .tfoot-r td {
+        padding: 2px 3px !important; font-size: 9px !important;
+        font-weight: 700 !important; background: #f0f0f0 !important;
+        color: #1e3a8a !important; border-top: 1.5px solid #1e3a8a !important;
+      }
+
+      input::placeholder, textarea::placeholder { color: transparent !important; }
+
+    }
+
+    /* ── EXPORT MODE — single page A4 landscape fit ── */
+    .export-mode {
+      width: 980px !important;
+      font-size: 10px !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+    }
+
+    .export-mode .doc-body {
+      padding: 4px 10px 6px !important;
+    }
+
+    .export-mode .sec {
+      font-size: 9px !important;
+      margin: 3px 0 2px !important;
+      padding-bottom: 2px !important;
+    }
+
+    /* Order details — 6 cols, very tight */
+    .export-mode .od-card {
+      margin-bottom: 4px !important;
+    }
+
+    .export-mode .od-grid {
+      grid-template-columns: repeat(6, 1fr) !important;
+    }
+
+    .export-mode .od-cell {
+      padding: 2px 5px !important;
+      border-bottom: 1px solid #e2e8f0 !important;
+    }
+
+    .export-mode .od-cell.wide {
+      grid-column: span 2 !important;
+    }
+
+    .export-mode .od-lbl {
+      font-size: 6.5px !important;
+      margin-bottom: 1px !important;
+      letter-spacing: 0 !important;
+    }
+
+    .export-mode .od-val,
+    .export-mode .od-val span,
+    .export-mode .od-val input {
+      font-size: 10px !important;
+      font-weight: 600 !important;
+      line-height: 1.3 !important;
+    }
+
+    /* Washing process — very short */
+    .export-mode .rbox {
+      margin-bottom: 4px !important;
+    }
+
+    .export-mode .rbox-head {
+      padding: 2px 8px !important;
+      font-size: 8px !important;
+    }
+
+    .export-mode .rbox textarea,
+    .export-mode .rbox span {
+      min-height: unset !important;
+      max-height: none !important;
+      height: auto !important;
+      padding: 3px 8px !important;
+      font-size: 11px !important;
+      line-height: 1.5 !important;
+      overflow: visible !important;
+      display: block !important;
+      white-space: pre-wrap !important;
+      word-break: break-word !important;
+    }
+
+    /* Transaction table */
+    .export-mode .tbl-card {
+      margin-bottom: 0 !important;
+    }
+
+    .export-mode .sh td {
+      padding: 3px 4px !important;
+      font-size: 9px !important;
+    }
+
+    .export-mode .cl th {
+      padding: 3px 3px !important;
+      font-size: 8px !important;
+    }
+
+    .export-mode tbody tr td {
+      height: 18px !important;
+      padding: 0 !important;
+    }
+
+    .export-mode tbody td input,
+    .export-mode tbody td span {
+      font-size: 9px !important;
+      padding: 0 3px !important;
+      line-height: 18px !important;
+      display: block !important;
+    }
+
+    .export-mode .tfoot-r td {
+      padding: 2px 3px !important;
+      font-size: 9px !important;
+    }
+
+    .export-mode .action-bar,
+    .export-mode .status-bar,
+    .export-mode .hide-on-print {
+      display: none !important;
+    }
+
+    .export-mode input::placeholder,
+    .export-mode textarea::placeholder {
+      color: transparent !important;
+    }
+
+    /* ── DASHBOARD ── */
+    .dash-container {
+      padding: 32px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .dash-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    .dash-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .dash-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 18px;
+    }
+    .dash-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border-light);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .dash-card:hover {
+      border-color: var(--brand-primary);
+      box-shadow: 0 6px 24px rgba(30,58,138,0.1);
+      transform: translateY(-2px);
+    }
+    .dash-card-accent {
+      width: 40px;
+      height: 4px;
+      background: var(--brand-primary);
+      border-radius: 2px;
+      margin-bottom: 14px;
+    }
+    .dash-card-dsn {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--brand-primary);
+      margin-bottom: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .dash-card-colour {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dash-card-colour-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--brand-secondary);
+      flex-shrink: 0;
+    }
+    .dash-card-meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .dash-card-tag {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: var(--bg-app);
+      color: var(--text-muted);
+      border: 1px solid var(--border-light);
+    }
+    .dash-card-del {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: all 0.2s;
+    }
+    .dash-card:hover .dash-card-del {
+      opacity: 1;
+    }
+    .dash-card-del:hover {
+      background: #fee2e2;
+      color: #ef4444;
+    }
+    .dash-empty {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
+      color: var(--text-muted);
+      text-align: center;
+      gap: 10px;
+    }
+    .dash-empty i {
+      width: 48px;
+      height: 48px;
+      opacity: 0.3;
+    }
+    .dash-empty div {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .dash-empty p {
+      font-size: 13px;
+      opacity: 0.7;
+    }
+
+    /* ── HAMBURGER — hidden on desktop, shown on mobile ── */
+    .hamburger {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border-medium);
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-main);
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .hamburger:hover { background: var(--bg-input-focus); }
+    .hamburger i { width: 18px; height: 18px; }
+
+    /* ── SIDEBAR OVERLAY — always in DOM, hidden by default ── */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 150;
+      backdrop-filter: blur(2px);
+    }
+    .sidebar-overlay.show { display: block; }
+
+    /* ── TABLET: 769px – 1100px ── */
+    @media (max-width: 1100px) {
+      .sidebar { width: 220px; }
+      .main-content { margin-left: 220px; }
+      .a4 { width: 100%; }
+      .doc-container { padding: 20px; }
+      .od-grid { grid-template-columns: repeat(2, 1fr); }
+      .od-cell.wide { grid-column: span 2; }
+      .topnav { padding: 0 16px; }
+      .top-title { font-size: 15px; }
+      .nbtn span { display: none; }
+      .nbtn { padding: 8px 10px; }
+      .dash-container { padding: 24px 20px; }
+      .dash-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ── MOBILE: up to 768px ── */
+    @media (max-width: 768px) {
+
+      /* Show hamburger */
+      .hamburger { display: flex; }
+
+      body { overflow-x: hidden; }
+
+      /* Sidebar: fixed, slides in from left */
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 270px;
+        z-index: 200;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+        box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+      }
+      .sidebar.open { transform: translateX(0); }
+
+      /* Main takes full width */
+      .main-content { margin-left: 0 !important; }
+
+      /* Topnav */
+      .topnav {
+        height: auto;
+        min-height: 58px;
+        padding: 10px 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+        position: sticky;
+        top: 0;
+        z-index: 90;
+      }
+      .top-title { font-size: 14px; }
+      .nav-btns { gap: 6px; flex-wrap: wrap; }
+      .nbtn { padding: 7px 10px; font-size: 11px; gap: 4px; }
+      .nbtn span { display: none; }
+      .nbtn i { width: 14px; height: 14px; }
+
+      /* Dashboard */
+      .dash-container { padding: 16px 12px; }
+      .dash-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .dash-title { font-size: 17px; }
+      .dash-header { margin-bottom: 16px; }
+      .dash-card { padding: 14px; }
+      .dash-card-del { opacity: 1; } /* always visible on touch */
+
+      /* Document */
+      .doc-container { padding: 10px 8px; }
+      .a4 { width: 100%; border-radius: 8px; font-size: 11px; }
+      .doc-body { padding: 12px 12px; }
+
+      /* Order details */
+      .od-grid { grid-template-columns: 1fr 1fr; }
+      .od-cell.wide { grid-column: span 2; }
+      .od-cell { padding: 8px 10px; }
+      .od-val input { font-size: 12px; }
+      .od-lbl { font-size: 8px; }
+
+      /* Order details + QR stack vertically */
+      .order-details-row {
+        grid-template-columns: 1fr !important;
+      }
+      .qr-bc-col {
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+        padding: 10px;
+        gap: 12px;
+      }
+
+      /* Table horizontal scroll */
+      .tbl-card {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      #dataTable { min-width: 600px; }
+
+      /* Washing */
+      .rbox textarea { min-height: 70px; }
+
+      /* Section label */
+      .sec { font-size: 11px; margin-top: 8px; }
+    }
+
+    /* ── SMALL PHONES: up to 480px ── */
+    @media (max-width: 480px) {
+      .topnav { padding: 8px 10px; }
+      .top-title { font-size: 13px; }
+      .doc-body { padding: 10px 8px; }
+      .od-grid { grid-template-columns: 1fr 1fr; }
+      .od-cell { padding: 6px 8px; }
+      .dash-grid { grid-template-columns: 1fr; gap: 10px; }
+      .dash-container { padding: 12px 10px; }
+      .nbtn { padding: 6px 9px; }
+    }
+
+    /* ── VERY SMALL: up to 360px ── */
+    @media (max-width: 360px) {
+      .od-grid { grid-template-columns: 1fr; }
+      .od-cell.wide { grid-column: span 1; }
+      .top-title { font-size: 12px; }
+    }
+
+    /* ── PWA INSTALL BANNER ── */
+    .install-banner {
+      position: fixed;
+      bottom: -140px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: 460px;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border-medium);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      z-index: 9999;
+      transition: bottom 0.45s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .install-banner.show { bottom: 24px; }
+    .install-banner-icon svg { width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px; }
+    .install-banner-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .install-banner-text strong { font-size: 14px; font-weight: 700; color: var(--text-main); }
+    .install-banner-text span   { font-size: 12px; color: var(--text-muted); }
+    .install-banner-btn {
+      background: var(--brand-primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .install-banner-btn:hover { opacity: 0.85; }
+    .install-banner-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 2px 6px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .a4 {
+      animation: slideIn .6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+  </style>
+</head>
+
+<body data-theme="light">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-dot"><i data-lucide="layers"></i></div>
+      <div>
+        <div class="brand-name">Textile Pro</div>
+        <div class="brand-sub">Production OS</div>
+      </div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')">
+        <i data-lucide="layout-dashboard"></i> Dashboard
+      </div>
+      <div class="nav-item" id="nav-editor" onclick="newOrder()">
+        <i data-lucide="file-plus-2"></i> New Order
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="theme-toggle" onclick="toggleTheme()">
+        <div class="theme-btn active" id="btn-light"><i data-lucide="sun"></i></div>
+        <div class="theme-btn" id="btn-dark"><i data-lucide="moon"></i></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- SIDEBAR OVERLAY (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- MAIN APP CONTENT -->
+  <main class="main-content">
+    <!-- TOP NAV -->
+    <header class="topnav">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="hamburger" id="hamburger" onclick="toggleSidebar()">
+          <i data-lucide="menu"></i>
+        </div>
+        <div class="top-title" id="pageTitle">Dashboard</div>
+      </div>
+      <div class="nav-btns" id="editorBtns" style="display:none;">
+        <button class="nbtn nbtn-s" onclick="showPage('dashboard')">
+          <i data-lucide="arrow-left"></i> <span>Back</span>
+        </button>
+        <button class="nbtn nbtn-s" onclick="saveData()">
+          <i data-lucide="save"></i> <span>Save</span>
+        </button>
+        <span id="autoSaveStatus" style="font-size:11px;font-weight:600;transition:color 0.3s;min-width:90px;"></span>
+        <button class="nbtn nbtn-success" onclick="exportExcel()">
+          <i data-lucide="table"></i> <span>Excel</span>
+        </button>
+        <button class="nbtn nbtn-p" onclick="exportPDF()">
+          <i data-lucide="file-down"></i> <span>PDF</span>
+        </button>
+        <button class="nbtn nbtn-s" onclick="window.print()">
+          <i data-lucide="printer"></i> <span>Print</span>
+        </button>
+      </div>
+      <div class="nav-btns" id="dashboardBtns">
+        <button class="nbtn nbtn-p" onclick="newOrder()">
+          <i data-lucide="plus"></i> <span>New Order</span>
+        </button>
+        <button class="nbtn nbtn-s" id="installBtn" style="display:none;" onclick="installPWA()">
+          <i data-lucide="download"></i> <span>Install App</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ── DASHBOARD PAGE ── -->
+    <div id="page-dashboard">
+      <div class="dash-container">
+        <div class="dash-header">
+          <div>
+            <div class="dash-title">Production Orders</div>
+            <div class="dash-sub">Click any order to open the editor</div>
+          </div>
+          <button class="nbtn nbtn-p" onclick="newOrder()" style="height:40px;">
+            <i data-lucide="plus"></i> <span>New Order</span>
+          </button>
+        </div>
+        <div class="dash-grid" id="dashGrid">
+          <!-- Cards injected by JS -->
+        </div>
+        <div class="dash-empty" id="dashEmpty">
+          <i data-lucide="inbox"></i>
+          <div>No orders yet</div>
+          <p>Click <strong>New Order</strong> to create your first production order</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EDITOR PAGE ── -->
+    <div id="page-editor" style="display:none;">
+    <!-- DOCUMENT WORKSPACE -->
+    <div class="doc-container">
+      <div class="a4" id="pdfArea">
+
+        <!-- hidden inputs kept for save/load compatibility -->
+        <input type="hidden" id="odate">
+        <input type="hidden" id="ddate">
+        <input type="hidden" id="refno">
+        <input type="hidden" id="currentStatus" value="Pending">
+        <input type="hidden" id="notesDye">
+        <input type="hidden" id="notesQc">
+        <input type="hidden" id="notesDef">
+        <input type="hidden" id="sigPrev">
+        <input type="hidden" id="sigPm">
+        <input type="hidden" id="sigAuth">
+
+        <!-- BODY -->
+        <div class="doc-body">
+
+          <!-- ORDER DETAILS -->
+          <div class="sec">
+            <i data-lucide="clipboard-list"></i> Order Details
+          </div>
+
+          <div class="order-details-row" style="display:block;margin-bottom:24px;">
+            <div class="od-card">
+              <div class="od-grid">
+                <div class="od-cell wide">
+                  <div class="od-lbl">Company Name</div>
+                  <div class="od-val"><input id="compName" placeholder="e.g. Sunrise Fabrics Ltd."></div>
+                </div>
+                <div class="od-cell hi">
+                  <div class="od-lbl">Order Quantity</div>
+                  <div class="od-val"><input id="oqty" placeholder="e.g. 5000 Mtrs" oninput="recalc()"></div>
+                </div>
+                <div class="od-cell hi">
+                  <div class="od-lbl">Design No</div>
+                  <div class="od-val"><input id="odsgn" placeholder="e.g. DSN-2024-08" oninput="recalc()"></div>
+                </div>
+                <div class="od-cell hi">
+                  <div class="od-lbl">Colour</div>
+                  <div class="od-val"><input id="ocolr" placeholder="e.g. Navy Blue" oninput="recalc()"></div>
+                </div>
+                <div class="od-cell">
+                  <div class="od-lbl">Weaving Quantity</div>
+                  <div class="od-val"><input id="wqty" placeholder="e.g. 4800 Mtrs"></div>
+                </div>
+                <div class="od-cell">
+                  <div class="od-lbl">Count</div>
+                  <div class="od-val"><input id="const" placeholder="e.g. 40×40"></div>
+                </div>
+                <div class="od-cell">
+                  <div class="od-lbl">Construction</div>
+                  <div class="od-val"><input id="construction" placeholder="e.g. 110×76"></div>
+                </div>
+                <div class="od-cell">
+                  <div class="od-lbl">Pick</div>
+                  <div class="od-val"><input id="pickVal" placeholder="e.g. 76"></div>
+                </div>
+                <div class="od-cell">
+                  <div class="od-lbl">Width</div>
+                  <div class="od-val"><input id="widthVal" placeholder="e.g. 60 inches"></div>
+                </div>
+                <div class="od-cell">
+                  <div class="od-lbl">Weight / Meter</div>
+                  <div class="od-val"><input id="ppm" placeholder="e.g. 22.50" oninput="recalc()"></div>
+                </div>
+                <div class="od-cell">
+                  <div class="od-lbl">Process Loss</div>
+                  <div class="od-val"><input id="processLoss" placeholder="e.g. 2%"></div>
+                </div>
+                <div class="od-cell">
+                  <div class="od-lbl">Price R.S.</div>
+                  <div class="od-val"><input id="priceRS" placeholder="e.g. 450.00"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- WASHING PROCESS -->
+          <div class="sec">
+            <i data-lucide="waves"></i> Washing Process
+          </div>
+          <div class="rbox" style="margin-bottom: 24px;">
+            <div class="rbox-head" style="background-color: #0ea5e9;">
+              <i data-lucide="droplets"></i> Washing Process Details
+            </div>
+            <textarea id="notesWashing"
+              placeholder="Enter washing process restrictions, temperature, handling notes..."
+              rows="5" style="font-size:18px; resize:vertical;"></textarea>
+          </div>
+
+          <!-- TRANSACTION LOG -->
+          <div class="sec">
+            <i data-lucide="arrow-left-right"></i> Transaction Log
+          </div>
+
+          <div class="tbl-card">
+            <table id="dataTable">
+              <thead>
+                <tr class="sh">
+                  <td colspan="4" class="sh-out">▲ OUT — Dispatch</td>
+                  <td colspan="3" class="sh-bill">◈ Bill Details</td>
+                  <td colspan="4" class="sh-in">▼ IN — Receipt</td>
+                </tr>
+                <tr class="cl">
+                  <th>Date</th>
+                  <th>Pieces</th>
+                  <th>Mtrs</th>
+                  <th class="dv">DC No</th>
+                  <th></th>
+                  <th></th>
+                  <th class="dv"></th>
+                  <th>Date</th>
+                  <th>Mtrs</th>
+                  <th>Pieces</th>
+                  <th>DC No</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+              <tfoot>
+                <tr class="tfoot-r">
+                  <td class="lbl" colspan="1">Totals</td>
+                  <td id="tp-out">—</td>
+                  <td id="tm-out">—</td>
+                  <td class="dv"></td>
+                  <td></td>
+                  <td></td>
+                  <td class="dv"></td>
+                  <td></td>
+                  <td id="tm-in">—</td>
+                  <td id="tp-in">—</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+            <div class="action-bar" id="addRowBar">
+              <div class="addrow-btn" onclick="clearTable()"><i data-lucide="trash-2"></i> Clear</div>
+              <div class="addrow-btn" onclick="addRow()"><i data-lucide="list-plus"></i> Add Row</div>
+            </div>
+          </div>
+
+          
+
+      </div><!-- /a4 -->
+    </div><!-- /doc-container -->
+    </div><!-- /page-editor -->
+  </main>
+
+  <div class="toast" id="toast">
+    <i data-lucide="info" id="toastIcon"></i>
+    <span id="toastMsg">Notification</span>
+  </div>
+
+  <!-- PWA INSTALL BANNER -->
+  <div class="install-banner" id="installBanner">
+    <div class="install-banner-icon">
+      <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <rect width="40" height="40" rx="8" fill="#1e3a8a"/>
+        <text x="20" y="28" font-size="22" text-anchor="middle" fill="#f59e0b" font-family="Arial" font-weight="900">T</text>
+      </svg>
+    </div>
+    <div class="install-banner-text">
+      <strong>Install Textile Pro</strong>
+      <span>Add to home screen for quick access</span>
+    </div>
+    <button class="install-banner-btn" onclick="installPWA()">Install</button>
+    <button class="install-banner-close" onclick="dismissBanner()">✕</button>
+  </div>
+
+  <script>
+    // ── SIDEBAR TOGGLE (MOBILE) ──
+    function toggleSidebar() {
+      document.querySelector('.sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('show');
+    }
+    function closeSidebar() {
+      document.querySelector('.sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('show');
+    }
+
+    // ── INIT ICONS ──
+    lucide.createIcons();
+
+    // ── THEME LOGIC ──
+    function toggleTheme() {
+      const body = document.documentElement;
+      const isDark = body.getAttribute('data-theme') === 'dark';
+      body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      if (isDark) {
+        document.getElementById('btn-light').classList.add('active');
+        document.getElementById('btn-dark').classList.remove('active');
+      } else {
+        document.getElementById('btn-dark').classList.add('active');
+        document.getElementById('btn-light').classList.remove('active');
+      }
+      recalc();
+    }
+
+    // ── TOAST ──
+    function showToast(msg, error = false) {
+      const t = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      t.style.background = error ? '#ef4444' : '#10b981';
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // ── STORAGE HELPERS ──
+    const STORE_KEY = 'textilePro_orders';
+    function getAllOrders() {
+      try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
+      catch { return {}; }
+    }
+    function saveAllOrders(orders) {
+      localStorage.setItem(STORE_KEY, JSON.stringify(orders));
+    }
+
+    // ── CURRENT ORDER ID ──
+    let currentOrderId = null;
+
+    // ── PAGE NAVIGATION ──
+    function showPage(page) {
+      document.getElementById('page-dashboard').style.display = page === 'dashboard' ? 'block' : 'none';
+      document.getElementById('page-editor').style.display   = page === 'editor'    ? 'block' : 'none';
+      document.getElementById('editorBtns').style.display    = page === 'editor'    ? 'flex'  : 'none';
+      document.getElementById('dashboardBtns').style.display = page === 'dashboard' ? 'flex'  : 'none';
+      document.getElementById('pageTitle').textContent = page === 'dashboard' ? 'Dashboard' : 'Production Order Editor';
+      document.getElementById('nav-dashboard').classList.toggle('active', page === 'dashboard');
+      document.getElementById('nav-editor').classList.toggle('active', page === 'editor');
+      if (page === 'dashboard') { currentOrderId = null; renderDashboard(); }
+      if (window.innerWidth <= 768) closeSidebar();
+    }
+
+    // ── DASHBOARD RENDER ──
+    function renderDashboard() {
+      const orders = getAllOrders();
+      const keys = Object.keys(orders);
+      const grid = document.getElementById('dashGrid');
+      const empty = document.getElementById('dashEmpty');
+      grid.innerHTML = '';
+      if (keys.length === 0) {
+        empty.style.display = 'flex';
+        grid.style.display = 'none';
+      } else {
+        empty.style.display = 'none';
+        grid.style.display = 'grid';
+        keys.forEach(id => {
+          const o = orders[id];
+          const dsn = o.odsgn || '—';
+          const clr = o.ocolr || '—';
+          const comp = o.compName || '—';
+          const qty = o.oqty || '—';
+          const saved = o._savedAt ? new Date(o._savedAt).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '—';
+          const card = document.createElement('div');
+          card.className = 'dash-card';
+          card.innerHTML = `
+            <button class="dash-card-del" onclick="deleteOrder(event,'${id}')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+            <div class="dash-card-accent"></div>
+            <div class="dash-card-dsn">${dsn}</div>
+            <div class="dash-card-colour"><div class="dash-card-colour-dot"></div>${clr}</div>
+            <div class="dash-card-meta">
+              <span class="dash-card-tag">${comp}</span>
+              <span class="dash-card-tag">Qty: ${qty}</span>
+              <span class="dash-card-tag">${saved}</span>
+            </div>`;
+          card.addEventListener('click', () => openOrder(id));
+          grid.appendChild(card);
+        });
+      }
+      lucide.createIcons();
+    }
+
+    function deleteOrder(e, id) {
+      e.stopPropagation();
+      if (!confirm('Delete this order?')) return;
+      const orders = getAllOrders();
+      delete orders[id];
+      saveAllOrders(orders);
+      renderDashboard();
+      showToast('Order deleted');
+    }
+
+    // ── OPEN EXISTING ORDER ──
+    function openOrder(id) {
+      currentOrderId = id;
+      const orders = getAllOrders();
+      const data = orders[id];
+      if (!data) return;
+      showPage('editor');
+      clearEditor();
+      const FIELDS = ['odate','ddate','refno','compName','oqty','odsgn','ocolr','wqty','const','construction','pickVal','widthVal','ppm','processLoss','priceRS','notesWashing','notesDye','notesQc','notesDef','sigPrev','sigPm','sigAuth'];
+      FIELDS.forEach(fid => {
+        const el = document.getElementById(fid);
+        if (el) el.value = data[fid] || '';
+      });
+      if (data.table && data.table.length > 0) {
+        document.getElementById('tbody').innerHTML = '';
+        data.table.forEach(r => addRow(r));
+        while (document.getElementById('tbody').children.length < 8) addRow();
+      }
+      recalc();
+      attachAutoSave();
+      setAutoSaveStatus('saved');
+      setTimeout(() => setAutoSaveStatus('idle'), 2000);
+    }
+
+    // ── NEW ORDER ──
+    function newOrder() {
+      currentOrderId = 'order_' + Date.now();
+      showPage('editor');
+      clearEditor();
+      attachAutoSave();
+    }
+
+    // ── CLEAR EDITOR ──
+    function clearEditor() {
+      const FIELDS = ['odate','ddate','refno','compName','oqty','odsgn','ocolr','wqty','const','construction','pickVal','widthVal','ppm','processLoss','priceRS','notesWashing','notesDye','notesQc','notesDef','sigPrev','sigPm','sigAuth'];
+      FIELDS.forEach(fid => { const el = document.getElementById(fid); if (el) el.value = ''; });
+      document.getElementById('tbody').innerHTML = '';
+      for (let i = 0; i < 8; i++) addRow();
+      recalc();
+    }
+
+    // ── SAVE DATA ──
+    function saveData(silent = false) {
+      if (!currentOrderId) currentOrderId = 'order_' + Date.now();
+      const FIELDS = ['odate','ddate','refno','compName','oqty','odsgn','ocolr','wqty','const','construction','pickVal','widthVal','ppm','processLoss','priceRS','notesWashing','notesDye','notesQc','notesDef','sigPrev','sigPm','sigAuth'];
+      const data = {};
+      FIELDS.forEach(id => { const el = document.getElementById(id); data[id] = el ? el.value : ''; });
+      data.status = document.getElementById('currentStatus').value;
+      data._savedAt = new Date().toISOString();
+      const rows = [];
+      document.querySelectorAll('#tbody tr').forEach(tr => {
+        const rowInputs = [];
+        tr.querySelectorAll('input').forEach(inp => rowInputs.push(inp.value));
+        if (rowInputs.some(v => v !== '')) rows.push(rowInputs);
+      });
+      data.table = rows;
+      const orders = getAllOrders();
+      orders[currentOrderId] = data;
+      saveAllOrders(orders);
+      if (!silent) showToast('Order Saved ✓');
+    }
+
+    // ── AUTO-SAVE SYSTEM ──
+    let autoSaveTimer = null;
+    const AUTO_SAVE_DELAY = 1500; // 1.5 seconds after last keystroke
+
+    function setAutoSaveStatus(status) {
+      const el = document.getElementById('autoSaveStatus');
+      if (!el) return;
+      const states = {
+        typing:  { text: '● Unsaved changes', color: '#f59e0b' },
+        saving:  { text: '↻ Saving...',        color: '#64748b' },
+        saved:   { text: '✓ Saved',             color: '#10b981' },
+        idle:    { text: '',                    color: 'transparent' }
+      };
+      const s = states[status] || states.idle;
+      el.textContent = s.text;
+      el.style.color = s.color;
+    }
+
+    function triggerAutoSave() {
+      if (!currentOrderId) return; // only auto-save if an order is open
+      setAutoSaveStatus('typing');
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(() => {
+        setAutoSaveStatus('saving');
+        saveData(true); // silent = true (no toast)
+        setTimeout(() => setAutoSaveStatus('saved'), 400);
+        setTimeout(() => setAutoSaveStatus('idle'), 3000);
+      }, AUTO_SAVE_DELAY);
+    }
+
+    function attachAutoSave() {
+      // Watch all form inputs inside the editor
+      document.querySelectorAll('#page-editor input:not([type="hidden"]), #page-editor textarea').forEach(el => {
+        el.addEventListener('input', triggerAutoSave);
+      });
+    }
+    function pick(el, statusText) {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+      el.classList.add('on');
+      document.getElementById('currentStatus').value = statusText;
+    }
+
+    // ── TABLE ROWS ──
+    const COLS = [
+      { ph: 'DD/MM/YY' }, { ph: '0', id: 'po' }, { ph: '0.00', id: 'mo' }, { ph: 'DC#', dv: true },
+      { ph: '' }, { ph: '' }, { ph: '', dv: true },
+      { ph: 'DD/MM/YY' }, { ph: '0.00', id: 'mi' }, { ph: '0', id: 'pi' }, { ph: 'DC#' }
+    ];
+
+    function addRow(data = []) {
+      const tr = document.createElement('tr');
+      COLS.forEach((c, i) => {
+        const td = document.createElement('td');
+        if (c.dv) td.className = 'dv';
+        const inp = document.createElement('input');
+        inp.placeholder = c.ph;
+        if (data[i]) inp.value = data[i];
+        if (c.id) { inp.dataset.col = c.id; inp.addEventListener('input', recalc); }
+        td.appendChild(inp);
+        tr.appendChild(td);
+      });
+      document.getElementById('tbody').appendChild(tr);
+    }
+
+    function clearTable() {
+      document.getElementById('tbody').innerHTML = '';
+      for (let i = 0; i < 8; i++) addRow();
+      recalc();
+    }
+
+    // ── RECALC ──
+    function recalc() {
+      let po = 0, mo = 0, mi = 0, pi = 0;
+      document.querySelectorAll('#tbody input[data-col]').forEach(inp => {
+        const v = parseFloat(inp.value) || 0;
+        if (inp.dataset.col === 'po') po += v;
+        if (inp.dataset.col === 'mo') mo += v;
+        if (inp.dataset.col === 'mi') mi += v;
+        if (inp.dataset.col === 'pi') pi += v;
+      });
+      const f = n => n ? n.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : '—';
+      document.getElementById('tp-out').textContent = f(po);
+      document.getElementById('tm-out').textContent = f(mo);
+      document.getElementById('tm-in').textContent = f(mi);
+      document.getElementById('tp-in').textContent = f(pi);
+    }
+
+    // ── PDF EXPORT — uses window.print() for crisp native quality ──
+    function exportPDF() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+      // Switch to light for print
+      if (isDark) document.documentElement.setAttribute('data-theme', 'light');
+
+      // Add print-ready class
+      document.body.classList.add('printing');
+
+      window.print();
+
+      // Restore after print dialog closes
+      setTimeout(() => {
+        document.body.classList.remove('printing');
+        if (isDark) document.documentElement.setAttribute('data-theme', 'dark');
+        showToast('✅ Print / Save as PDF ready');
+      }, 500);
+    }
+
+    // ── EXCEL EXPORT ──
+    function exportExcel() {
+      const wb = XLSX.utils.book_new();
+      const ws_data = [
+        ["Textile Pro - Production Order Sheet"], [""],
+        ["Company", document.getElementById('compName').value],
+        ["Order Qty", document.getElementById('oqty').value],
+        ["Design No", document.getElementById('odsgn').value],
+        ["Color", document.getElementById('ocolr').value], [""],
+        ["TRANSACTION LOG"],
+        ["OUT-Date","OUT-Pcs","OUT-Mtr","OUT-DC","Bill-1","Bill-2","Bill-3","IN-Date","IN-Mtr","IN-Pcs","IN-DC"]
+      ];
+      document.querySelectorAll('#tbody tr').forEach(tr => {
+        const rowData = [];
+        tr.querySelectorAll('input').forEach(inp => rowData.push(inp.value));
+        if (rowData.some(v => v !== '')) ws_data.push(rowData);
+      });
+      const ws = XLSX.utils.aoa_to_sheet(ws_data);
+      XLSX.utils.book_append_sheet(wb, ws, "Order_Data");
+      XLSX.writeFile(wb, `POR_${document.getElementById('odsgn').value || '001'}.xlsx`);
+      showToast('Excel Downloaded ✓');
+    }
+
+    // ── BOOT: show dashboard ──
+    renderDashboard();
+    showPage('dashboard');
+  </script>
+
+  <!-- ── PWA SETUP ── -->
+  <script>
+    // ── 1. APP ICON ──
+    const iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+      <rect width="512" height="512" rx="80" fill="#1e3a8a"/>
+      <rect x="90" y="110" width="332" height="36" rx="8" fill="#f59e0b"/>
+      <rect x="90" y="170" width="240" height="26" rx="6" fill="white" opacity="0.85"/>
+      <rect x="90" y="216" width="180" height="26" rx="6" fill="white" opacity="0.65"/>
+      <rect x="90" y="262" width="210" height="26" rx="6" fill="white" opacity="0.65"/>
+      <rect x="90" y="308" width="160" height="26" rx="6" fill="white" opacity="0.45"/>
+      <circle cx="390" cy="360" r="80" fill="#f59e0b"/>
+      <text x="390" y="395" font-size="90" text-anchor="middle" fill="#1e3a8a" font-family="Arial" font-weight="900">T</text>
+      <rect x="90" y="420" width="332" height="5" rx="3" fill="#f59e0b" opacity="0.5"/>
+    </svg>`;
+    const iconDataURL = 'data:image/svg+xml;base64,' + btoa(iconSVG);
+    document.getElementById('pwa-favicon').href   = iconDataURL;
+    document.getElementById('pwa-icon-link').href = iconDataURL;
+
+    // ── 2. MANIFEST ──
+    const manifest = {
+      name: "Textile Pro",
+      short_name: "Textile Pro",
+      description: "Production Order Management for Textile & Weaving",
+      start_url: "./",
+      display: "standalone",
+      orientation: "any",
+      background_color: "#1e3a8a",
+      theme_color: "#1e3a8a",
+      icons: [
+        { src: iconDataURL, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
+        { src: iconDataURL, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+      ],
+      categories: ["business", "productivity"]
+    };
+    const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+    document.getElementById('pwa-manifest').href = URL.createObjectURL(manifestBlob);
+
+    // ── 3. SERVICE WORKER (full offline caching) ──
+    const swCode = `
+      const CACHE = 'textile-pro-v2';
+      const CDN = [
+        'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap',
+        'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+        'https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js'
+      ];
+
+      self.addEventListener('install', e => {
+        e.waitUntil(
+          caches.open(CACHE).then(cache =>
+            Promise.allSettled(CDN.map(url => cache.add(url).catch(() => null)))
+          ).then(() => self.skipWaiting())
+        );
+      });
+
+      self.addEventListener('activate', e => {
+        e.waitUntil(
+          caches.keys()
+            .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+            .then(() => self.clients.claim())
+        );
+      });
+
+      self.addEventListener('fetch', e => {
+        if (e.request.method !== 'GET') return;
+        e.respondWith(
+          caches.match(e.request).then(cached => {
+            if (cached) return cached;
+            return fetch(e.request).then(res => {
+              if (res && res.status === 200) {
+                const clone = res.clone();
+                caches.open(CACHE).then(c => c.put(e.request, clone));
+              }
+              return res;
+            }).catch(() => cached);
+          })
+        );
+      });
+    `;
+    if ('serviceWorker' in navigator) {
+      const swBlob = new Blob([swCode], { type: 'application/javascript' });
+      navigator.serviceWorker.register(URL.createObjectURL(swBlob), { scope: './' })
+        .then(() => console.log('✅ SW registered — offline ready'))
+        .catch(e => console.warn('SW:', e));
+    }
+
+    // ── 4. INSTALL BANNER ──
+    let deferredPrompt = null;
+    const banner   = document.getElementById('installBanner');
+    const topBtn   = document.getElementById('installBtn');
+
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // Show top button
+      topBtn.style.display = 'flex';
+      // Show floating banner after 4s
+      setTimeout(() => { if (deferredPrompt) banner.classList.add('show'); }, 4000);
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      topBtn.style.display = 'none';
+      banner.classList.remove('show');
+      showToast('✅ Textile Pro installed as App!');
+    });
+
+    function installPWA() {
+      if (!deferredPrompt) {
+        showToast('Open in Chrome → tap ⋮ menu → "Add to Home Screen"', true);
+        return;
+      }
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(({ outcome }) => {
+        if (outcome === 'accepted') showToast('Installing Textile Pro...');
+        deferredPrompt = null;
+        topBtn.style.display = 'none';
+        banner.classList.remove('show');
+      });
+    }
+
+    function dismissBanner() {
+      banner.classList.remove('show');
+    }
+  </script>
+</body>
+</html>
