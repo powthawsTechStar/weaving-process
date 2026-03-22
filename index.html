@@ -3,14 +3,15 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0d2d4a">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>TexWeave Pro – Textile ERP v2</title>
+  <title>TexWeave Pro – Textile ERP v7</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Outfit:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     :root {
       --navy: #0d2d4a;
@@ -1811,9 +1812,10 @@
       display: none;
     }
 
-    /* ══════════════════════════════════════════
-       RESPONSIVE — MOBILE & TABLET
-    ══════════════════════════════════════════ */
+    /* ══════════════════════════════════════════════════════
+       RESPONSIVE — COMPLETE DEVICE COVERAGE
+       Breakpoints: 1400+, 1200, 1024, 900, 768, 600, 480, 360
+    ══════════════════════════════════════════════════════ */
 
     /* ── Mobile Top Bar ── */
     .mobileTopBar {
@@ -1821,27 +1823,38 @@
       position: fixed;
       top: 0; left: 0; right: 0;
       height: 56px;
-      background: rgba(13, 45, 74, .97);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      z-index: 200;
+      background: rgba(10, 34, 58, .98);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      z-index: 300;
       align-items: center;
       justify-content: space-between;
-      padding: 0 16px;
+      padding: 0 14px;
+      gap: 10px;
+      box-shadow: 0 2px 20px rgba(0,0,0,.4);
     }
 
     .hamburger {
-      background: none;
-      border: none;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 8px;
       cursor: pointer;
-      padding: 6px;
+      padding: 8px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 4px;
+      min-width: 40px;
+      min-height: 40px;
+      align-items: center;
+      justify-content: center;
+      transition: background .2s;
+      flex-shrink: 0;
     }
+    .hamburger:active { background: rgba(255,255,255,.18); }
     .hamburger span {
       display: block;
-      width: 22px;
+      width: 20px;
       height: 2px;
       background: rgba(255,255,255,.85);
       border-radius: 2px;
@@ -1852,10 +1865,10 @@
       display: none;
       background: rgba(255,255,255,.08);
       border: 1px solid rgba(255,255,255,.12);
-      color: rgba(255,255,255,.6);
-      width: 30px; height: 30px;
+      color: rgba(255,255,255,.7);
+      width: 34px; height: 34px;
       border-radius: 8px;
-      font-size: 14px;
+      font-size: 15px;
       cursor: pointer;
       margin-left: auto;
       align-items: center;
@@ -1863,190 +1876,419 @@
       flex-shrink: 0;
       transition: all .2s;
     }
-    .sidebarClose:hover { background: rgba(255,255,255,.15); color: white; }
+    .sidebarClose:hover, .sidebarClose:active { background: rgba(255,255,255,.18); color: white; }
 
     .sidebarOverlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,.55);
-      z-index: 98;
-      backdrop-filter: blur(2px);
+      background: rgba(0,0,0,.6);
+      z-index: 299;
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
     }
     .sidebarOverlay.active { display: block; }
 
-    /* ── Tablet (≤ 1024px) ── */
-    @media (max-width: 1024px) {
-      .statsGrid { grid-template-columns: repeat(3, 1fr); }
-      .companiesGrid, .processGrid { grid-template-columns: repeat(2, 1fr); }
-      .dailyGrid { grid-template-columns: 1fr; }
-      .modeGrid  { grid-template-columns: 1fr 1fr; }
+    /* ── Large Desktop (≥ 1400px) ── */
+    @media (min-width: 1400px) {
+      .statsGrid       { grid-template-columns: repeat(5, 1fr); }
+      .companiesGrid   { grid-template-columns: repeat(4, 1fr); }
+      .billGrid        { grid-template-columns: repeat(5, 1fr); }
+      .sidebar         { width: 260px; }
+      .main            { margin-left: 260px; }
     }
 
-    /* ── Mobile (≤ 768px) ── */
-    @media (max-width: 768px) {
-      /* Show mobile top bar, hide sidebar by default */
-      .mobileTopBar { display: flex; }
-      .sidebarClose { display: flex; }
+    /* ── Desktop (≤ 1200px) ── */
+    @media (max-width: 1200px) {
+      .statsGrid       { grid-template-columns: repeat(4, 1fr); }
+      .billGrid        { grid-template-columns: repeat(4, 1fr); }
+      .billTotalsRow   { grid-template-columns: 1fr 1fr; }
+    }
 
+    /* ── Tablet Landscape / Small Desktop (≤ 1024px) ── */
+    @media (max-width: 1024px) {
+      .sidebar         { width: 210px; }
+      .main            { margin-left: 210px; }
+      .statsGrid       { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+      .companiesGrid,
+      .processGrid     { grid-template-columns: repeat(2, 1fr); }
+      .dailyGrid       { grid-template-columns: 1fr; }
+      .modeGrid        { grid-template-columns: 1fr 1fr; }
+      .billGrid        { grid-template-columns: repeat(3, 1fr); }
+      .billTotalsRow   { grid-template-columns: 1fr 1fr 1fr; }
+      .summaryBar      { gap: 12px; }
+      .twoCol          { grid-template-columns: 1fr; gap: 14px; }
+    }
+
+    /* ── Tablet Portrait (≤ 900px) ── */
+    @media (max-width: 900px) {
+      .sidebar         { width: 195px; }
+      .main            { margin-left: 195px; }
+      .statsGrid       { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .companiesGrid   { grid-template-columns: 1fr 1fr; }
+      .processGrid     { grid-template-columns: 1fr 1fr 1fr; }
+      .billGrid        { grid-template-columns: repeat(2, 1fr); }
+      .page            { padding: 18px 16px; }
+      .topBar h2       { font-size: 20px; }
+    }
+
+    /* ── Mobile (≤ 768px) — MAIN MOBILE BREAKPOINT ── */
+    @media (max-width: 768px) {
+      /* ─ Show mobile top bar ─ */
+      .mobileTopBar    { display: flex; }
+      .sidebarClose    { display: flex; }
+
+      /* ─ Sidebar: slide-in drawer ─ */
       .sidebar {
         transform: translateX(-100%);
-        transition: transform .3s cubic-bezier(.4,0,.2,1);
-        width: 260px;
-        z-index: 200;
+        transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+        width: 280px;
+        z-index: 300;
         box-shadow: none;
+        top: 0;
       }
       .sidebar.open {
         transform: translateX(0);
-        box-shadow: 4px 0 40px rgba(0,0,0,.5);
+        box-shadow: 6px 0 40px rgba(0,0,0,.6);
       }
 
-      .main {
-        margin-left: 0;
-        padding-top: 56px; /* room for mobile top bar */
-      }
+      /* ─ Main content ─ */
+      .main            { margin-left: 0; padding-top: 56px; }
+      .page            { padding: 14px 12px; animation: none; }
 
-      .page { padding: 16px 14px; }
+      /* ─ Top bar stacks vertically ─ */
+      .topBar          { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+      .topBar h2       { font-size: 19px; }
+      .topBar .sub     { font-size: 12px; }
+      .topActions      { width: 100%; flex-wrap: wrap; gap: 6px; }
+      .topActions button { flex: 1; min-width: 120px; justify-content: center; }
 
-      /* Top bar stacks */
-      .topBar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-        margin-bottom: 16px;
-      }
-      .topBar h2 { font-size: 19px; }
-      .topActions { flex-wrap: wrap; gap: 6px; }
+      /* ─ Stat cards: 2 cols ─ */
+      .statsGrid       { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+      .statCard        { padding: 14px 12px; border-radius: 12px; }
+      .statVal         { font-size: 22px; }
+      .statIcon        { font-size: 20px; margin-bottom: 6px; }
 
-      /* Stats: 2 cols on mobile */
-      .statsGrid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
-      .statCard  { padding: 14px 12px; }
-      .statVal   { font-size: 20px; }
-
-      /* Grids: 1 col on mobile */
+      /* ─ Company/process grids: 1 col ─ */
       .companiesGrid,
       .processGrid,
       .modeGrid,
       .designCardsGrid,
-      .dailyGrid { grid-template-columns: 1fr; gap: 12px; }
+      .dailyGrid       { grid-template-columns: 1fr; gap: 12px; }
 
-      /* Register info strip scrolls horizontally */
-      .infoStrip { overflow-x: auto; flex-wrap: nowrap; display: flex; }
-      .iField    { min-width: 120px; flex-shrink: 0; }
+      /* ─ Two-col panels: stack ─ */
+      .twoCol          { grid-template-columns: 1fr !important; gap: 12px; }
 
-      /* Filter bar wraps */
-      .filterBar { gap: 8px; }
-      .filterBar input,
-      .filterBar select { font-size: 12px; }
-
-      /* Table: horizontal scroll */
-      .tblWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .regTable { min-width: 780px; font-size: 11px; }
-      .regTable thead th { font-size: 9px; padding: 7px 5px; }
-      .regTable td { padding: 5px 4px; }
-
-      /* Register footer stacks */
-      .regFooter {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-        padding: 12px 14px;
+      /* ─ Register info strip: horizontal scroll with snap ─ */
+      .infoStrip {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        display: flex;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
       }
-      .regFooter div { flex-wrap: wrap; gap: 6px; }
-      .grandTotalDisp { font-size: 12px; }
+      .infoStrip::-webkit-scrollbar { display: none; }
+      .iField          { min-width: 120px; flex-shrink: 0; scroll-snap-align: start; }
 
-      /* Register banner */
-      .regBanner { padding: 12px 14px; }
-      .regBanner h2 { font-size: 14px; }
+      /* ─ Filter bar ─ */
+      .filterBar       { gap: 8px; flex-wrap: wrap; padding: 8px 12px; }
+      .filterBar input,
+      .filterBar select { font-size: 12px; flex: 1; min-width: 120px; }
 
-      /* Breadcrumb smaller */
-      .breadcrumb .bcrumb { font-size: 10px; padding: 2px 5px; }
+      /* ─ Register table: horizontal scroll ─ */
+      .tblWrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+        border-bottom: 2px solid rgba(255,255,255,.06);
+      }
+      .regTable        { min-width: 920px; font-size: 11px; }
+      .regTable thead th { font-size: 9px; padding: 7px 5px; }
+      .regTable td     { padding: 6px 4px; }
+      .regTable td input,
+      .regTable td select { font-size: 10px; padding: 4px 4px; width: 95%; min-height: 32px; }
 
-      /* Dashboard panels */
-      .dashGrid { grid-template-columns: 1fr !important; }
+      /* ─ Register footer: stacked layout ─ */
+      .regFooter       { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 14px; }
+      .regFooter > div { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+      .grandTotalDisp  { font-size: 12px; width: 100%; }
+      .grandTotalDisp span { padding: 4px 14px; }
+      .btnAddRow, .btnPrintReg, .btnExport, .btnPartBill, .btnConfirmBill {
+        padding: 8px 12px; font-size: 11px; flex: 1; min-height: 40px;
+        display: flex; align-items: center; justify-content: center;
+      }
 
-      /* Panel padding */
-      .panel { padding: 0; }
-      .panelHead { padding: 14px 14px 10px; }
+      /* ─ Summary bar: wrap neatly ─ */
+      .summaryBar      { flex-wrap: wrap; gap: 8px; padding: 10px 14px; }
+      .sumItem         { font-size: 10px; flex: 1; min-width: 100px; }
+      .sumItem strong  { font-size: 12px; display: block; }
 
-      /* Daily entry */
-      .formRow { flex-direction: column; gap: 8px; }
-      .formGroup { flex: none; width: 100%; }
+      /* ─ Billing panel ─ */
+      .billGrid        { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .billTotalsRow   { grid-template-columns: 1fr; gap: 8px; }
+      .billingPanel    { padding: 14px 16px; }
+      .billingPanel h4 { font-size: 13px; }
+      .billHistTable   { font-size: 11px; }
+      .billHistTable thead th { font-size: 9px; padding: 6px 8px; }
+      .billHistTable td { padding: 7px 8px; }
 
-      /* Modals */
-      .modalBox { width: 92vw; max-height: 85vh; overflow-y: auto; }
+      /* ─ Print bill modal: full screen on mobile ─ */
+      .printBillModal  { align-items: flex-start !important; }
+      .printBillBox    { width: 100vw !important; max-width: 100vw !important; border-radius: 0 !important; max-height: 100vh !important; }
 
-      /* Company hub hub grid: 2 cols */
-      #sv-designHubGrid,
-      #kcn-designHubGrid,
-      #bco-designHubGrid,
+      /* ─ Modals: near full screen ─ */
+      .modal           { align-items: flex-end; }
+      .modalBox        {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        border-radius: 18px 18px 0 0 !important;
+        max-height: 88vh;
+        overflow-y: auto;
+        margin: 0;
+        padding: 22px 18px 30px;
+      }
+
+      /* ─ Register banner ─ */
+      .regBanner       { padding: 12px 14px; flex-wrap: wrap; gap: 8px; }
+      .regBanner h2    { font-size: 14px; }
+
+      /* ─ Breadcrumb: compact ─ */
+      .breadcrumb      { gap: 4px; margin-bottom: 12px; }
+      .breadcrumb .bcrumb { font-size: 10px; padding: 3px 6px; }
+
+      /* ─ Dashboard panels ─ */
+      .panel           { border-radius: 12px; padding: 16px; }
+      .panelHead       { margin-bottom: 12px; }
+      .panelHead h4    { font-size: 14px; }
+
+      /* ─ Daily entry form ─ */
+      .formRow         { flex-direction: column; gap: 8px; }
+      .formGroup       { flex: none; width: 100%; }
+      .formGroup input,
+      .formGroup select { font-size: 14px; padding: 10px 12px; }
+
+      /* ─ Company hub design grid: 2 cols ─ */
       [id$='-designHubGrid'] {
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 12px !important;
+        gap: 10px !important;
       }
 
-      /* Dashboard two-col panel → single col */
-      .twoCol { grid-template-columns: 1fr !important; gap: 12px; }
+      /* ─ Company cards: 2 col grid ─ */
+      .companiesGrid   { grid-template-columns: 1fr 1fr !important; gap: 10px; }
+      .companyCard     { padding: 16px; }
+      .companyCard h3  { font-size: 14px; }
 
-      /* Dashboard company grid */
-      .companiesGrid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      /* ─ Process cards ─ */
+      .processCard     { padding: 20px 16px; }
+      .processCard .pIcon { font-size: 36px; }
+      .processCard h3  { font-size: 17px; }
 
-      /* Process overview overflow */
-      .processOverviewRow { overflow-x: auto; }
+      /* ─ Bar chart labels ─ */
+      .bLabel          { font-size: 8px; }
+      .bar .bVal       { font-size: 8px; top: -14px; }
 
-      /* Hide bar chart label on very small screens */
-      .bLabel { font-size: 8px; }
+      /* ─ Design stat pills: scrollable ─ */
+      .designStatPills { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+      .designStatPills::-webkit-scrollbar { display: none; }
+
+      /* ─ infoStrip rate fields ─ */
+      .iField input[id$="-pickrate"],
+      .iField input[id$="-mtrsrate"],
+      .iField input[id$="-mendrate"],
+      .iField input[id$="-crumb"] { font-size: 12px; }
+    }
+
+    /* ── Medium Mobile (≤ 600px) ── */
+    @media (max-width: 600px) {
+      /* Billing modal: full screen bottom sheet */
+      #billingModal    { align-items: flex-end; }
+      #billingModal .modalBox {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        max-height: 92vh !important;
+        border-radius: 18px 18px 0 0 !important;
+        margin: 0 !important;
+        padding: 20px 16px 28px !important;
+      }
+
+      /* Process grid: 1 col */
+      .processGrid     { grid-template-columns: 1fr !important; }
+
+      /* Bill config grid: 1 col */
+      .billGrid        { grid-template-columns: repeat(2, 1fr); }
+
+      /* Register table narrower */
+      .regTable        { min-width: 860px; }
+
+      /* Compact stat cards */
+      .statCard        { padding: 12px 10px; }
+
+      /* Company cards: 1 per row */
+      .companiesGrid   { grid-template-columns: 1fr !important; }
+
+      /* mRow labels wider for billing modal */
+      .mRow label      { width: 90px; }
     }
 
     /* ── Small Mobile (≤ 480px) ── */
     @media (max-width: 480px) {
-      .page { padding: 12px 10px; }
-      .statsGrid { grid-template-columns: 1fr 1fr; gap: 8px; }
-      .statVal { font-size: 18px; }
-      .topBar h2 { font-size: 17px; }
+      .mobileTopBar    { height: 52px; padding: 0 12px; }
+      .main            { padding-top: 52px; }
+      .page            { padding: 10px 8px; }
 
+      .statsGrid       { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+      .statCard        { padding: 11px 10px; border-radius: 10px; }
+      .statVal         { font-size: 19px; }
+      .statIcon        { font-size: 18px; margin-bottom: 5px; }
+      .statLabel       { font-size: 9px; }
+      .topBar h2       { font-size: 17px; }
+      .topBar .sub     { font-size: 11px; }
+
+      /* Company cards: 1 col */
+      .companiesGrid   { grid-template-columns: 1fr !important; gap: 8px; }
+      .companyCard     { padding: 14px 12px; }
+      .cStats          { grid-template-columns: 1fr 1fr; }
+
+      /* Design hub: 1 col */
       [id$='-designHubGrid'] { grid-template-columns: 1fr !important; }
 
-      /* Table inputs slightly smaller */
+      /* Table compact */
+      .regTable        { min-width: 820px; font-size: 10.5px; }
+      .regTable thead th { font-size: 8.5px; padding: 6px 3px; }
+      .regTable td     { padding: 5px 3px; }
       .regTable td input,
-      .regTable td select { font-size: 10px; padding: 3px 4px; }
+      .regTable td select { font-size: 10px; padding: 3px 3px; min-height: 30px; }
 
-      /* infoStrip label smaller */
-      .iField label { font-size: 8px; }
-      .iField input, .iField select { font-size: 12px; }
+      /* Info strip labels */
+      .iField          { min-width: 100px; }
+      .iField label    { font-size: 7.5px; }
+      .iField input, .iField select { font-size: 11px; }
 
-      /* Buttons compact */
-      .btnAddRow, .btnPrintReg, .btnExport, .btnExportCSV {
-        padding: 5px 10px;
-        font-size: 10px;
+      /* All action buttons: full width rows */
+      .regFooter > div { gap: 5px; }
+      .btnAddRow, .btnPrintReg, .btnExport, .btnExportCSV,
+      .btnPartBill, .btnConfirmBill {
+        padding: 7px 10px; font-size: 10.5px; min-height: 38px;
       }
 
-      /* Breadcrumb hide middle items on tiny screens */
+      /* Breadcrumb compact */
       .breadcrumb .sep { display: none; }
-      .breadcrumb .bcrumb:not(.active):not(:last-child) { display: none; }
+      .breadcrumb .bcrumb:not(.active) { opacity: .5; font-size: 9px; }
+
+      /* Billing cards: 2x2 */
+      .billGrid        { grid-template-columns: 1fr 1fr; gap: 6px; }
+      .billCard        { padding: 9px 10px; border-radius: 9px; }
+      .billCard .bv    { font-size: 14px; }
+      .billCard .bl    { font-size: 9px; }
+      .billTotalsRow   { grid-template-columns: 1fr; gap: 8px; }
+
+      /* Summary bar */
+      .summaryBar      { gap: 6px; padding: 8px 10px; }
+      .sumItem         { font-size: 9.5px; min-width: 80px; }
+      .sumItem strong  { font-size: 11.5px; }
+
+      /* Register footer */
+      .regFooter       { padding: 10px; gap: 8px; }
+      .grandTotalDisp  { font-size: 10px; line-height: 1.7; }
+      .grandTotalDisp span { font-size: 12px; padding: 3px 10px; }
+
+      /* Modal */
+      .modalBox        { padding: 18px 14px 28px; }
+      .modalBox h3     { font-size: 16px; }
+      .printBillBox    { max-height: 100vh !important; }
+
+      /* Nav items in sidebar */
+      .navItem         { font-size: 12px; padding: 8px 10px; }
+      .navItem .icon   { width: 26px; height: 26px; font-size: 12px; }
+
+      /* Billing modal config grid: 1 col */
+      #billingModal .modalBox > div > div[style*="grid-template-columns:1fr 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+      }
     }
 
-    /* ── Large screens tweak ── */
-    @media (min-width: 1400px) {
-      .statsGrid { grid-template-columns: repeat(5, 1fr); }
-      .companiesGrid { grid-template-columns: repeat(4, 1fr); }
+    /* ── Extra Small (≤ 360px — older Android/iPhone SE) ── */
+    @media (max-width: 360px) {
+      .mobileTopBar    { height: 50px; padding: 0 10px; }
+      .main            { padding-top: 50px; }
+      .page            { padding: 8px 6px; }
+
+      .statsGrid       { gap: 6px; }
+      .statCard        { padding: 10px 8px; border-radius: 9px; }
+      .statVal         { font-size: 17px; }
+      .topBar h2       { font-size: 15px; }
+
+      .navItem         { font-size: 11.5px; padding: 7px 10px; }
+      .logoText .t1    { font-size: 13px; }
+      .logoText .t2    { font-size: 9px; }
+
+      .regBanner h2    { font-size: 12px; }
+      .regTable        { min-width: 760px; font-size: 10px; }
+      .regTable thead th { padding: 5px 2px; font-size: 8px; }
+
+      .summaryBar      { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+      .sumItem strong  { font-size: 11px; }
+
+      .btnAddRow, .btnPrintReg, .btnExport,
+      .btnPartBill, .btnConfirmBill { font-size: 10px; padding: 6px 8px; }
+
+      .modalBox        { padding: 16px 12px 24px; border-radius: 14px 14px 0 0 !important; }
+
+      /* Hide less critical breadcrumb segments */
+      .breadcrumb .bcrumb:not(.active) { display: none; }
+      .breadcrumb .sep { display: none; }
+    }
+
+    /* ── Landscape Mobile (phone in landscape) ── */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .mobileTopBar    { height: 46px; }
+      .main            { padding-top: 46px; }
+      .page            { padding: 8px 12px; }
+      .statsGrid       { grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+      .statCard        { padding: 10px; }
+      .statVal         { font-size: 18px; }
+      .modalBox        { max-height: 90vh; border-radius: 10px !important; }
+      #billingModal .modalBox { max-height: 90vh !important; border-radius: 10px !important; }
+      .sidebar         { overflow-y: auto; }
+      .sideNav         { padding-bottom: 60px; }
+    }
+
+    /* ── iPad / Large Tablet Portrait (768px–1024px) ── */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      .sidebar         { width: 220px; }
+      .main            { margin-left: 220px; }
+      .billGrid        { grid-template-columns: repeat(3, 1fr); }
+      .statsGrid       { grid-template-columns: repeat(3, 1fr); }
+      .summaryBar      { flex-wrap: wrap; }
+      .companiesGrid   { grid-template-columns: repeat(2, 1fr); }
+      .twoCol          { grid-template-columns: 1.2fr 1fr; }
     }
 
     @media print {
       @page {
         size: A4 landscape;
-        margin: 11mm 13mm;
+        margin: 6mm 8mm;
       }
 
       * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+        color-adjust: exact !important;
       }
 
       body {
         background: white !important;
         color: #111 !important;
       }
+
+      /* ✅ Show active register page — prevents blank white page */
+      .page { display: none !important; animation: none !important; opacity: 1 !important; transform: none !important; }
+      .page.active { display: block !important; opacity: 1 !important; transform: none !important; }
+
+      /* ✅ Hide animated background, mobile bar, bill modal */
+      .bgCanvas, .mobileTopBar { display: none !important; }
+      #printBillModal { display: none !important; }
 
       .sidebar,
       .topBar .topActions,
@@ -2183,9 +2425,32 @@
         font-size: 8.5px !important;
       }
 
-      .noPrint {
-        display: none !important;
-      }
+      .noPrint { display: none !important; }
+
+      /* ════ LANDSCAPE ENHANCEMENTS ════ */
+      .regPage { width:100%!important; max-width:100%!important; }
+      .regTable { font-size:11px!important; width:100%!important; }
+      .regTable thead th { font-size:10px!important; padding:6px 7px!important; background:#0d3a5c!important; color:white!important; }
+      .regTable td { padding:5px 6px!important; font-size:11px!important; }
+      .regTable td input,.regTable td select { font-size:10px!important; background:transparent!important; border:none!important; color:#111!important; }
+      .infoStrip { display:flex!important; flex-direction:row!important; flex-wrap:wrap!important; background:#f0f6ff!important; border-bottom:2px solid #0d3a5c!important; }
+      .iField { padding:7px 12px!important; border-right:1px solid #ccd9ea!important; flex:1!important; min-width:110px!important; }
+      .iField label { color:#556b8a!important; font-size:8px!important; }
+      .iField input,.iField select { color:#0d3a5c!important; font-size:12px!important; font-weight:600!important; }
+      .regBanner { padding:8px 16px!important; }
+      .regBanner h2 { font-size:14px!important; }
+      .regFooter { background:#f0f6ff!important; border-top:2px solid #0d3a5c!important; padding:8px 16px!important; display:flex!important; flex-wrap:wrap!important; gap:12px!important; align-items:center!important; }
+      .pOnly { display:flex!important; flex-wrap:wrap!important; gap:12px!important; background:#f0f6ff!important; padding:8px 16px!important; border-top:1px solid #ccd9ea!important; }
+      .pOnly input { border:none!important; border-bottom:1px solid #0d3a5c!important; background:transparent!important; color:#0d3a5c!important; font-weight:700!important; font-size:10px!important; }
+      .regPage { page-break-inside:avoid; }
+      .regTable tbody tr { page-break-inside:avoid; }
+      .summaryBar { display:flex!important; flex-wrap:wrap!important; background:#e8f0f8!important; padding:6px 14px!important; gap:18px!important; border-top:1px solid #ccd9ea!important; }
+      .sumItem { color:#556b8a!important; font-size:10px!important; }
+      .sumItem strong { color:#0d2d4a!important; font-size:12px!important; }
+      .designSelectorBar,.designDashboard { display:none!important; }
+      .statusBadge.done { background:#e6f4ec!important; color:#1e8449!important; border:1px solid #b7dfca!important; -webkit-print-color-adjust:exact!important; }
+      .statusBadge.pend { background:#fdecea!important; color:#c0392b!important; border:1px solid #f5c6c2!important; -webkit-print-color-adjust:exact!important; }
+      .statusBadge.run  { background:#e8f0fb!important; color:#1a5f9e!important; border:1px solid #b0ccee!important; -webkit-print-color-adjust:exact!important; }
     }
 
     /* ══ MISC ══ */
@@ -2378,6 +2643,246 @@
       font-weight: 600;
       color: white;
     }
+    /* ══ BILLING PANEL ══ */
+    .billingPanel {
+      background: rgba(201,168,76,.06);
+      border: 1px solid rgba(201,168,76,.2);
+      border-radius: 14px;
+      padding: 18px 22px;
+      margin-top: 10px;
+    }
+    .billingPanel h4 {
+      font-family: 'Playfair Display',serif;
+      font-size: 15px;
+      color: var(--gold2);
+      margin-bottom: 14px;
+    }
+    .billGrid {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .billCard {
+      background: rgba(0,0,0,.25);
+      border-radius: 10px;
+      padding: 11px 14px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,.07);
+    }
+    .billCard .bv {
+      font-family: 'Playfair Display',serif;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .billCard .bl {
+      font-size: 9px;
+      color: rgba(255,255,255,.4);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-top: 3px;
+    }
+    .billTotalsRow {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .billTotalBox {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 9px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .billTotalBox label { font-size: 11px; color: rgba(255,255,255,.55); font-weight: 600; }
+    .billTotalBox span  { font-size: 14px; font-weight: 700; font-family:'Playfair Display',serif; }
+    .btnConfirmBill {
+      background: linear-gradient(135deg, rgba(201,168,76,.35), rgba(201,168,76,.15));
+      border: 1px solid rgba(201,168,76,.5);
+      color: var(--gold2);
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-family: 'Outfit',sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btnConfirmBill:hover { background: rgba(201,168,76,.5); }
+    .btnPartBill {
+      background: rgba(14,124,123,.25);
+      border: 1px solid rgba(14,124,123,.4);
+      color: #5fd3d2;
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-family: 'Outfit',sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btnPartBill:hover { background: rgba(14,124,123,.5); }
+
+    /* ══ BILL HISTORY TABLE ══ */
+    .billHistTable {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+    .billHistTable thead th {
+      background: rgba(0,0,0,.3);
+      color: rgba(255,255,255,.6);
+      padding: 7px 10px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+    .billHistTable tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+    .billHistTable tbody tr:hover { background: rgba(255,255,255,.04); }
+    .billHistTable td { padding: 7px 10px; }
+
+    /* ══ MENDING MODAL ADDITIONS ══ */
+    .mendingCalc {
+      background: rgba(14,124,123,.1);
+      border: 1px solid rgba(14,124,123,.3);
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-top: 12px;
+    }
+    .mendingCalc .mRow {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 12px;
+      color: rgba(255,255,255,.7);
+    }
+    .mendingCalc .mRow strong { color: #5fd3d2; }
+
+    /* ══ RETURN FIELD ══ */
+    .regTable input.ret {
+      background: rgba(155,89,182,.12) !important;
+      border-color: rgba(155,89,182,.3) !important;
+      color: #d7bdf7 !important;
+      font-weight: 600;
+    }
+    .regTable input.ret:focus {
+      background: rgba(155,89,182,.22) !important;
+      border-color: rgba(155,89,182,.6) !important;
+    }
+
+    /* ══ PRINT BILL MODAL ══ */
+    .printBillModal {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .printBillBox {
+      background: white;
+      color: #111;
+      width: 680px;
+      max-width: 95vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      border-radius: 12px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.6);
+    }
+    /* ✅ BILL PRINT — uses body.printing-bill class set by JS */
+    @media print {
+      body.printing-bill > *:not(#printBillModal) { display: none !important; }
+      body.printing-bill #printBillModal {
+        display: block !important;
+        position: fixed !important;
+        inset: 0 !important;
+        background: white !important;
+        z-index: 99999 !important;
+        overflow: visible !important;
+      }
+      body.printing-bill #printBillBox {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: none !important;
+        overflow: visible !important;
+        background: white !important;
+        color: #111 !important;
+      }
+      body.printing-bill .inv { background: white !important; color: #111 !important; }
+      body.printing-bill .inv-footer-btns { display: none !important; }
+    }
+
+    /* ══ SUMMARY TOTALS BAR ══ */
+    .summaryBar {
+      background: rgba(255,255,255,.04);
+      border-top: 1px solid rgba(255,255,255,.07);
+      padding: 10px 22px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .sumItem { font-size: 11px; color: rgba(255,255,255,.5); }
+    .sumItem strong { color: white; font-size: 13px; margin-left: 5px; font-family:'Playfair Display',serif; }
+
+
+    /* ══ TOUCH & ACCESSIBILITY ══ */
+    /* 44px minimum touch targets — Apple HIG standard */
+    @media (hover: none) and (pointer: coarse) {
+      .navItem { min-height: 44px; }
+      .btnAddRow, .btnPrintReg, .btnExport, .btnExportCSV,
+      .btnPartBill, .btnConfirmBill,
+      .btnReg, .btnFilter, .btnClear,
+      .processBtn, .modeBtn, .btnOpenDesign,
+      .hamburger, .sidebarClose { min-height: 44px; min-width: 44px; }
+      .regTable td input,
+      .regTable td select { min-height: 38px; font-size: 14px !important; }
+      .iField input, .iField select { min-height: 40px; font-size: 15px !important; }
+      .formGroup input, .formGroup select { min-height: 46px; font-size: 16px; }
+      .filterBar input, .filterBar select { min-height: 42px; }
+      .chip { min-height: 36px; }
+      .stage { min-height: 32px; padding: 4px 12px; }
+      .btnDel { width: 32px; height: 32px; font-size: 16px; }
+    }
+
+    /* ─ Smooth scroll on iOS ─ */
+    .tblWrap, .sideNav, .modalBox, .printBillBox, .infoStrip, .designStatPills {
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+    }
+
+    /* ─ Prevent zoom on input focus (iOS) ─ */
+    @media (max-width: 768px) {
+      input, select, textarea { font-size: 16px !important; }
+      .regTable td input,
+      .regTable td select { font-size: 14px !important; }
+    }
+
+    /* ─ Prevent text-size adjust ─ */
+    body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+    /* ─ Better tap highlight ─ */
+    a, button, [onclick] { -webkit-tap-highlight-color: rgba(14,124,123,.2); }
+
+    /* ─ Safe area insets for iPhone notch/home indicator ─ */
+    @supports (padding: max(0px)) {
+      .mobileTopBar { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14px, env(safe-area-inset-right)); }
+      .sidebar { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+      .regFooter { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+      .modalBox { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+    }
+
   </style>
 </head>
 
@@ -2391,7 +2896,7 @@
         <div class="logoIcon">🧵</div>
         <div class="logoText">
           <div class="t1">TexWeave Pro</div>
-          <div class="t2">Textile ERP v2</div>
+          <div class="t2">Textile ERP v7</div>
         </div>
         <button class="sidebarClose" onclick="closeSidebar()" title="Close menu">✕</button>
       </div>
@@ -2433,10 +2938,26 @@
           <div class="icon">🎨</div>Design Library
         </div>
       </div>
+      <div class="navSection">
+        <div class="navLabel">ERP System</div>
+        <div class="navItem" onclick="openAnalytics()" style="color:rgba(255,255,255,.7);">
+          <div class="icon" style="background:rgba(14,124,123,.25);">📈</div>Analytics
+        </div>
+        <div class="navItem" onclick="openAuditLog()" style="color:rgba(255,255,255,.7);">
+          <div class="icon" style="background:rgba(52,152,219,.25);">📋</div>Audit Log
+        </div>
+        <div class="navItem" onclick="exportJSONBackup()" style="color:rgba(255,255,255,.7);">
+          <div class="icon" style="background:rgba(46,204,113,.2);">📦</div>Export Backup
+        </div>
+        <div class="navItem" onclick="importJSONBackup()" style="color:rgba(255,255,255,.5);">
+          <div class="icon" style="background:rgba(231,76,60,.15);">📥</div>Restore Backup
+        </div>
+      </div>
     </nav>
     <div class="sidebarBottom">
+      <div id="autoBackupTime" style="font-size:9px;color:rgba(255,255,255,.25);text-align:center;padding:4px 0 8px;letter-spacing:.5px;">Auto-save every 30s</div>
       <div class="userCard">
-        <div class="avatar">B</div>
+        <div class="avatar">A</div>
         <div class="userInfo">
           <div class="name">Admin</div>
           <div class="role">Production Manager</div>
@@ -2453,11 +2974,17 @@
     <button class="hamburger" onclick="openSidebar()" aria-label="Open menu">
       <span></span><span></span><span></span>
     </button>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div class="logoIcon" style="width:32px;height:32px;font-size:15px;border-radius:8px;background:linear-gradient(135deg,var(--teal),var(--gold));display:flex;align-items:center;justify-content:center;">🧵</div>
-      <span style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;">TexWeave Pro</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:30px;height:30px;font-size:14px;border-radius:7px;background:linear-gradient(135deg,var(--teal),var(--gold));display:flex;align-items:center;justify-content:center;flex-shrink:0;">🧵</div>
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;line-height:1.1;">TexWeave Pro</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase;">Textile ERP v7</div>
+      </div>
     </div>
-    <div style="width:40px;"></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button onclick="exportJSONBackup()" style="background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.3);color:#2ecc71;width:34px;height:34px;border-radius:8px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Backup">📦</button>
+      <div id="mobilePageTitle" style="display:none;font-size:11px;color:rgba(255,255,255,.5);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+    </div>
   </div>
 
   <!-- ══ MAIN ══ -->
@@ -2472,8 +2999,42 @@
         </div>
         <div class="topActions">
           <span class="badge">🟢 <span id="activeCoCount">3</span> Companies Active</span>
-          <span class="badge" style="background:rgba(14,124,123,.2);color:#5fd3d2;border-color:rgba(14,124,123,.3);">🏭
-            Weaving Process</span>
+          <span class="badge" style="background:rgba(14,124,123,.2);color:#5fd3d2;border-color:rgba(14,124,123,.3);">🏭 Weaving Process</span>
+          <button onclick="openAnalytics()" style="background:rgba(14,124,123,.2);border:1px solid rgba(14,124,123,.3);color:#5fd3d2;padding:5px 13px;border-radius:7px;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;">📈 Analytics</button>
+          <button onclick="exportJSONBackup()" style="background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.3);color:#2ecc71;padding:5px 13px;border-radius:7px;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;">📦 Backup</button>
+        </div>
+      </div>
+
+      <!-- ══ WORKFLOW PIPELINE ══ -->
+      <div style="display:flex;align-items:center;gap:0;margin-bottom:20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;">
+        <div style="flex:1;padding:10px 16px;text-align:center;border-right:1px solid rgba(255,255,255,.08);">
+          <div style="font-size:16px;margin-bottom:2px;">🧵</div>
+          <div style="font-size:11px;font-weight:700;color:#2ecc8e;">Weaving</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.35);">Entry → Register</div>
+        </div>
+        <div style="color:rgba(255,255,255,.2);font-size:16px;padding:0 4px;">›</div>
+        <div style="flex:1;padding:10px 16px;text-align:center;border-right:1px solid rgba(255,255,255,.08);">
+          <div style="font-size:16px;margin-bottom:2px;">💧</div>
+          <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);">Washing</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.2);">Coming soon</div>
+        </div>
+        <div style="color:rgba(255,255,255,.2);font-size:16px;padding:0 4px;">›</div>
+        <div style="flex:1;padding:10px 16px;text-align:center;border-right:1px solid rgba(255,255,255,.08);">
+          <div style="font-size:16px;margin-bottom:2px;">🎨</div>
+          <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);">Dyeing</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.2);">Coming soon</div>
+        </div>
+        <div style="color:rgba(255,255,255,.2);font-size:16px;padding:0 4px;">›</div>
+        <div style="flex:1;padding:10px 16px;text-align:center;border-right:1px solid rgba(255,255,255,.08);">
+          <div style="font-size:16px;margin-bottom:2px;">💳</div>
+          <div style="font-size:11px;font-weight:700;color:#c9a84c;">Billing</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.35);">Part / Full Bill</div>
+        </div>
+        <div style="color:rgba(255,255,255,.2);font-size:16px;padding:0 4px;">›</div>
+        <div style="flex:1;padding:10px 16px;text-align:center;">
+          <div style="font-size:16px;margin-bottom:2px;">📊</div>
+          <div style="font-size:11px;font-weight:700;color:#3498db;">Reports</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.35);">Export & Archive</div>
         </div>
       </div>
       <div class="statsGrid">
@@ -2830,7 +3391,9 @@
         </div>
         <div style="margin-left:auto;display:flex;gap:8px;">
           <button class="btnExportCSV" onclick="exportReportCSV()">⬇️ Export Excel</button>
-          <button class="btnExport" onclick="window.print()"
+          <button onclick="openAnalytics()" style="background:rgba(14,124,123,.2);color:#5fd3d2;border:1px solid rgba(14,124,123,.3);padding:7px 14px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">📈 Analytics</button>
+          <button onclick="exportJSONBackup()" style="background:rgba(46,204,113,.15);color:#2ecc71;border:1px solid rgba(46,204,113,.3);padding:7px 14px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">📦 JSON Backup</button>
+          <button class="btnExport" onclick="document.body.classList.remove('printing-bill');window.print()"
             style="background:rgba(123,63,160,.2);color:#c084fc;border-color:rgba(123,63,160,.3);">🖨️ Print</button>
         </div>
       </div>
@@ -3000,6 +3563,36 @@
 
     // ══ UTILITY ══
     const r2 = v => Math.round(v * 100) / 100;
+
+
+    // ✅ NEW: Apply Mtrs Rate to all rows that have no individual rate set
+    function applyMtrsRate(pid) {
+      const mtrsRate = parseFloat(document.getElementById(pid+'-mtrsrate')?.value)||0;
+      document.querySelectorAll(`#${pid}-tbody tr`).forEach((row, i) => {
+        const rateInput = row.querySelector('.rate');
+        if (!rateInput) return;
+        // Update placeholder so user sees the fallback rate
+        rateInput.placeholder = mtrsRate > 0 ? mtrsRate.toFixed(2) : '0.00';
+        // If row has no individual rate, recalc using mtrsRate via calcRow
+        const idx = parseInt(row.dataset.idx);
+        if (!isNaN(idx)) calcRow(pid, idx);
+      });
+      updateGrandTotal(pid);
+      updateDashboard();
+      saveAll();
+    }
+
+    function recalcAllRows(pid) {
+      const state_key = pid.split('__');
+      if(state_key.length < 2) return;
+      const co = state_key[0];
+      const dk = state_key.slice(1).join('__');
+      const st = regState[co]?.[dk];
+      if(!st) return;
+      st.rows.forEach(idx => calcRow(pid, idx));
+      updateGrandTotal(pid);
+      updateDashboard();
+    }
     // Safe DOM key from design string
     function dKey(d) { return (d||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'_'); }
     // Page ID for a company+design register
@@ -3426,10 +4019,11 @@
               <span style="font-size:14px;font-weight:800;color:${c.color};">${dn}</span>
             </div>
           </div>
-          <div class="infoStrip" style="grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.06);">
+          <div class="infoStrip" style="grid-template-columns:repeat(5,1fr);border-top:1px solid rgba(255,255,255,.06);">
             <div class="iField"><label>Pick Rate</label><input id="${pid}-pickrate" placeholder="0.25" type="number" step="0.01"></div>
-            <div class="iField"><label>Mtrs Rate (₹)</label><input id="${pid}-mtrsrate" placeholder="16.25" type="number" step="0.01"></div>
+            <div class="iField"><label>Mtrs Rate (₹)</label><input id="${pid}-mtrsrate" placeholder="16.25" type="number" step="0.01" oninput="applyMtrsRate('${pid}')"></div>
             <div class="iField"><label>Crumb %</label><input id="${pid}-crumb" placeholder="4" type="number" step="0.01"></div>
+            <div class="iField"><label>Mend Rate ₹/hr</label><input id="${pid}-mendrate" placeholder="50" type="number" step="0.01" oninput="recalcAllRows('${pid}')"></div>
             <div class="iField"><label>Last Date</label><input id="${pid}-lastdate" type="date"></div>
           </div>
           <div class="filterBar">
@@ -3450,7 +4044,7 @@
                 <tr>
                   <th>#</th><th>DC No.</th><th>Date</th><th>Pieces</th>
                   <th>Meter</th><th>Total M ✎</th><th>Folding</th><th>Pin Less ✎</th>
-                  <th>±Short</th><th>Mending</th><th>OK Meter</th><th>Rate</th>
+                  <th>±Short</th><th>Return</th><th>Mending Y</th><th>Mend Amt</th><th>OK Meter</th><th>Rate</th>
                   <th>Amount</th><th>Stage</th><th></th>
                 </tr>
               </thead>
@@ -3460,7 +4054,8 @@
           <div class="regFooter">
             <button class="btnAddRow" onclick="addRegRow('${co}','${dn.replace(/'/g,"\\'")}')">+ Add Row</button>
             <div class="grandTotalDisp">Grand Total: <span id="${pid}-grandTotal">0.00</span> m &nbsp;|&nbsp; OK: <span id="${pid}-grandOK">0.00</span> m &nbsp;|&nbsp; ₹<span id="${pid}-grandAmt">0.00</span></div>
-            <div style="display:flex;gap:8px;">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btnConfirmBill" onclick="openBillingModal('${co}','${dn.replace(/'/g,"\\'")}')">💳 Part Bill</button>
               <button class="btnExport" onclick="exportRegExcel('${co}','${dn.replace(/'/g,"\\'")}')">⬇️ Export</button>
               <button class="btnPrintReg" onclick="printReg('${co}','${dn.replace(/'/g,"\\'")}')">🖨️ Print ${dn}</button>
             </div>
@@ -3492,14 +4087,16 @@
                 <span style="color:white;font-size:10px;font-weight:700;text-transform:uppercase;">Calculation Summary</span>
                 <span style="color:rgba(255,255,255,.55);font-size:9px;" id="${pid}-pDate"></span>
               </div>
-              <div style="display:grid;grid-template-columns:repeat(8,1fr);background:#f4f8fc;">
+              <div style="display:grid;grid-template-columns:repeat(10,1fr);background:#f4f8fc;">
                 <div style="padding:9px;border-right:1px solid #d0dce8;text-align:center;"><div style="font-size:7px;color:#6b7c93;font-weight:700;text-transform:uppercase;margin-bottom:3px;">Total M</div><div style="font-size:13px;font-weight:700;color:#0d3a5c;" id="${pid}-pTM">0.00</div></div>
                 <div style="padding:9px 4px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#0d3a5c;font-weight:300;">−</div>
                 <div style="padding:9px;border-right:1px solid #d0dce8;text-align:center;"><div style="font-size:7px;color:#6b7c93;font-weight:700;text-transform:uppercase;margin-bottom:3px;">Pin Less</div><div style="font-size:13px;font-weight:700;color:#c0392b;" id="${pid}-pPL">0.00</div></div>
-                <div style="padding:9px 4px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#0d3a5c;font-weight:300;">±</div>
-                <div style="padding:9px;border-right:1px solid #d0dce8;text-align:center;"><div style="font-size:7px;color:#6b7c93;font-weight:700;text-transform:uppercase;margin-bottom:3px;">Short/Mend</div><div style="font-size:13px;font-weight:700;color:#e67e22;" id="${pid}-pSR">0.00</div></div>
+                <div style="padding:9px 4px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#0d3a5c;font-weight:300;">−</div>
+                <div style="padding:9px;border-right:1px solid #d0dce8;text-align:center;"><div style="font-size:7px;color:#6b7c93;font-weight:700;text-transform:uppercase;margin-bottom:3px;">Short/Ret</div><div style="font-size:13px;font-weight:700;color:#e67e22;" id="${pid}-pSR">0.00</div></div>
                 <div style="padding:9px 4px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#0d3a5c;font-weight:300;">=</div>
                 <div style="padding:9px;border-right:1px solid #d0dce8;text-align:center;"><div style="font-size:7px;color:#6b7c93;font-weight:700;text-transform:uppercase;margin-bottom:3px;">OK Meter</div><div style="font-size:13px;font-weight:700;color:#1e8449;" id="${pid}-pOK">0.00</div></div>
+                <div style="padding:9px 4px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#0d3a5c;font-weight:400;">+Mend</div>
+                <div style="padding:9px;border-right:1px solid #d0dce8;text-align:center;"><div style="font-size:7px;color:#6b7c93;font-weight:700;text-transform:uppercase;margin-bottom:3px;">Mend Amt ₹</div><div style="font-size:13px;font-weight:700;color:#9b59b6;" id="${pid}-pMendAmt">0.00</div></div>
                 <div style="padding:9px;background:#0d3a5c;text-align:center;"><div style="font-size:7px;color:rgba(255,255,255,.6);text-transform:uppercase;margin-bottom:3px;">Amount ₹</div><div style="font-size:13px;font-weight:700;color:white;" id="${pid}-pAmt">0.00</div></div>
               </div>
             </div>
@@ -3543,10 +4140,12 @@
         <td><input type="number" class="tm" step="0.01" placeholder="0.00" style="width:64px;${inS}" oninput="calcRow('${pid}',${idx});updateGrandTotal('${pid}');updateDashboard();saveAll()"></td>
         <td><button class="btnReg" onclick="openMeterModal('${co}','${dn.replace(/'/g,"\\'")}',${idx},'fold')">📏 Fold</button></td>
         <td><input type="number" class="pl" step="0.01" placeholder="0.00" style="width:64px;${inS}" oninput="calcRow('${pid}',${idx});updateGrandTotal('${pid}');updateDashboard();saveAll()"></td>
-        <td><input type="number" class="short"   step="0.01" placeholder="0" style="width:52px;"></td>
-        <td><input type="number" class="mending" step="0.01" placeholder="0" style="width:56px;"></td>
+        <td><input type="number" class="short"   step="0.01" placeholder="0" style="width:52px;${inS}" oninput="calcRow('${pid}',${idx});updateGrandTotal('${pid}');updateDashboard();saveAll()"></td>
+        <td><input type="number" class="ret"     step="0.01" placeholder="0" style="width:52px;${inS}" oninput="calcRow('${pid}',${idx});updateGrandTotal('${pid}');updateDashboard();saveAll()"></td>
+        <td><input type="number" class="mendY"   step="1"    placeholder="0" style="width:52px;${inS}" title="Mending in inches (Y)" oninput="calcRow('${pid}',${idx});updateGrandTotal('${pid}');updateDashboard();saveAll()"></td>
+        <td class="computed mendAmt" style="font-weight:600;color:#c084fc;min-width:52px;">0.00</td>
         <td class="computed ok"  style="font-weight:700;color:#2ecc8e;min-width:52px;">0.00</td>
-        <td><input type="number" class="rate" step="0.01" placeholder="0.00" style="width:54px;"></td>
+        <td><input type="number" class="rate" step="0.01" placeholder="0.00" style="width:54px;${inS}" oninput="calcRow('${pid}',${idx});updateGrandTotal('${pid}');updateDashboard();saveAll()"></td>
         <td class="computed amt" style="font-weight:700;color:var(--gold2);min-width:56px;">0.00</td>
         <td class="stageCell"><span class="stage pending" onclick="cycleStage(this)">Pending</span></td>
         <td><button class="btnDel" onclick="delRegRow('${co}','${dn.replace(/'/g,"\\'")}',${idx})">×</button></td>`;
@@ -3574,28 +4173,65 @@
     function calcRow(pid, idx) {
       const row = document.getElementById(`${pid}-row-${idx}`);
       if (!row) return;
-      const tm  = parseFloat(row.querySelector('.tm').value)||0;
-      const pl  = parseFloat(row.querySelector('.pl').value)||0;
-      const sh  = parseFloat(row.querySelector('.short').value)||0;
-      const men = parseFloat(row.querySelector('.mending').value)||0;
-      const ok  = r2(tm-pl+sh-men);
-      row.querySelector('.ok').textContent  = ok.toFixed(2);
-      const rate = parseFloat(row.querySelector('.rate').value)||0;
-      row.querySelector('.amt').textContent = r2(ok*rate).toFixed(2);
+      const tm   = parseFloat(row.querySelector('.tm')?.value)||0;
+      const pl   = parseFloat(row.querySelector('.pl')?.value)||0;
+      const sh   = parseFloat(row.querySelector('.short')?.value)||0;
+      const ret  = parseFloat(row.querySelector('.ret')?.value)||0;
+      const mendY= parseFloat(row.querySelector('.mendY')?.value)||0;
+      // Mending: Y inches / 38 = hours; hours * mendRate
+      const pidParts = pid.split('__');
+      const co = pidParts[0];
+      const mendRate = parseFloat(document.getElementById(pid+'-mendrate')?.value)||0;
+      const mendHrs  = r2(mendY / 38);
+      const mendAmt  = r2(mendHrs * mendRate);
+      if(row.querySelector('.mendAmt')) row.querySelector('.mendAmt').textContent = mendAmt.toFixed(2);
+      // OK = Total - PinLess - Shortage - Return
+      const ok  = r2(tm - pl - sh - ret);
+      row.querySelector('.ok').textContent = ok.toFixed(2);
+      // ✅ FIX: per-row rate; if blank fall back to register Mtrs Rate
+      const rowRate   = parseFloat(row.querySelector('.rate')?.value)||0;
+      const mtrsRate  = parseFloat(document.getElementById(pid+'-mtrsrate')?.value)||0;
+      const rate      = rowRate > 0 ? rowRate : mtrsRate;
+      // Auto-fill the rate cell visually if it was empty and mtrsRate exists
+      if(rowRate === 0 && mtrsRate > 0 && row.querySelector('.rate')) {
+        row.querySelector('.rate').placeholder = mtrsRate.toFixed(2);
+      }
+      const fabricAmt = r2(ok * rate);
+      const subtotal  = r2(fabricAmt + mendAmt);
+      row.querySelector('.amt').textContent = subtotal.toFixed(2);
     }
 
     function updateGrandTotal(pid) {
-      let totalM=0,totalOK=0,totalAmt=0;
+      let totalM=0,totalOK=0,totalAmt=0,totalPL=0,totalSH=0,totalRet=0,totalMend=0;
       document.querySelectorAll(`#${pid}-tbody tr`).forEach(r=>{
         if(r.classList.contains('filtered-out'))return;
-        totalM  +=parseFloat(r.querySelector('.tm')?.value)||0;
-        totalOK +=parseFloat(r.querySelector('.ok')?.textContent)||0;
-        totalAmt+=parseFloat(r.querySelector('.amt')?.textContent)||0;
+        totalM   +=parseFloat(r.querySelector('.tm')?.value)||0;
+        totalPL  +=parseFloat(r.querySelector('.pl')?.value)||0;
+        totalSH  +=parseFloat(r.querySelector('.short')?.value)||0;
+        totalRet +=parseFloat(r.querySelector('.ret')?.value)||0;
+        totalMend+=parseFloat(r.querySelector('.mendAmt')?.textContent)||0;
+        totalOK  +=parseFloat(r.querySelector('.ok')?.textContent)||0;
+        totalAmt +=parseFloat(r.querySelector('.amt')?.textContent)||0;
       });
+      const fabricAmt = r2(totalAmt - totalMend);
+      // ✅ FIX: fabricAmt is correctly OK × Rate (from row calc), totalMend is separate
+      // Use 5% GST as display preview (actual GST set in billing modal)
+      const gst       = r2(totalAmt * 0.05);
+      const finalAmt  = r2(totalAmt + gst);
       const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-      set(pid+'-grandTotal',r2(totalM).toFixed(2));
-      set(pid+'-grandOK',   r2(totalOK).toFixed(2));
-      set(pid+'-grandAmt',  r2(totalAmt).toFixed(2));
+      set(pid+'-grandTotal', r2(totalM).toFixed(2));
+      set(pid+'-grandPL',    r2(totalPL).toFixed(2));
+      set(pid+'-grandSH',    r2(totalSH).toFixed(2));
+      set(pid+'-grandRet',   r2(totalRet).toFixed(2));
+      set(pid+'-grandMend',  '₹'+r2(totalMend).toFixed(2));
+      set(pid+'-grandFab',   '₹'+r2(fabricAmt).toFixed(2));
+      set(pid+'-grandOK',    r2(totalOK).toFixed(2));
+      set(pid+'-grandAmt',   r2(totalAmt).toFixed(2));
+      set(pid+'-grandGST',   r2(gst).toFixed(2));
+      set(pid+'-grandFinal', r2(finalAmt).toFixed(2));
+      // Store current final for part billing
+      const pg = document.getElementById('page-'+pid);
+      if(pg) pg.dataset.currentFinal = finalAmt;
     }
 
     function filterRegRows(pid) {
@@ -3681,6 +4317,7 @@
     function printReg(co,dn) {
       const pid=pageId(co,dn);
       let tm=0,pl=0,ok=0,amt=0,sh=0,men=0;
+      let ret=0,mendAmt=0;
       document.querySelectorAll(`#${pid}-tbody tr`).forEach(r=>{
         tm  +=parseFloat(r.querySelector('.tm')?.value)||0;
         pl  +=parseFloat(r.querySelector('.pl')?.value)||0;
@@ -3688,11 +4325,14 @@
         amt +=parseFloat(r.querySelector('.amt')?.textContent)||0;
         sh  +=parseFloat(r.querySelector('.short')?.value)||0;
         men +=parseFloat(r.querySelector('.mending')?.value)||0;
+        ret +=parseFloat(r.querySelector('.ret')?.value)||0;
+        mendAmt+=parseFloat(r.querySelector('.mendAmt')?.textContent)||0;
       });
       const now=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
       const setE=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
       setE(pid+'-pTM',r2(tm).toFixed(2));setE(pid+'-pPL',r2(pl).toFixed(2));
-      setE(pid+'-pSR',r2(sh-men).toFixed(2));setE(pid+'-pOK',r2(ok).toFixed(2));
+      setE(pid+'-pSR',r2(sh+ret).toFixed(2));setE(pid+'-pOK',r2(ok).toFixed(2));
+      setE(pid+'-pMendAmt',r2(mendAmt).toFixed(2));
       setE(pid+'-pAmt',r2(amt).toFixed(2));setE(pid+'-pDate','Printed: '+now);
       setE(pid+'-pCname',document.getElementById(pid+'-cname')?.value||companies[co]?.name||'—');
       setE(pid+'-pCount',document.getElementById(pid+'-count')?.value||'—');
@@ -3705,6 +4345,7 @@
       const pSum=document.getElementById(pid+'-pSummary');
       if(pSum){pSum.style.display='block';pSum.classList.add('pOnly');}
       showPage(pid.replace(/^page-/,''));
+      document.body.classList.remove('printing-bill');
       setTimeout(()=>window.print(),200);
     }
 
@@ -3712,7 +4353,7 @@
     function exportRegExcel(co,dn) {
       const pid=pageId(co,dn);
       const c=companies[co];
-      const headers=['#','DC No.','Date','Pieces','Total M','Pin Less','Short','Mending','OK Meter','Rate (₹)','Amount (₹)','Stage'];
+      const headers=['#','DC No.','Date','Pieces','Total M','Pin Less','Short','Return','Mend Y (in)','Mend Amt (₹)','OK Meter','Rate (₹)','Subtotal (₹)','Stage'];
       const rows=[];
       rows.push(['Company',c.name,'','Design No',dn]);
       rows.push(['Count',document.getElementById(pid+'-count')?.value||'','','Construction',document.getElementById(pid+'-construction')?.value||'']);
@@ -3728,7 +4369,7 @@
       });
       if(typeof XLSX!=='undefined'){
         const ws=XLSX.utils.aoa_to_sheet(rows);
-        ws['!cols']=[4,10,12,8,10,10,8,10,10,10,12,10].map(w=>({wch:w}));
+        ws['!cols']=[4,10,12,8,10,10,8,8,10,10,10,10,12,10].map(w=>({wch:w}));
         const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,dn);
         XLSX.writeFile(wb,`${c.name.replace(/\s/g,'_')}_${dn}_Register.xlsx`);
       } else {
@@ -4111,6 +4752,8 @@
               pieces:r?.querySelector('.pieces')?.value||'1',
               short:r?.querySelector('.short')?.value||'',
               mending:r?.querySelector('.mending')?.value||'',
+              mendY:r?.querySelector('.mendY')?.value||'',
+              ret:r?.querySelector('.ret')?.value||'',
               rate:r?.querySelector('.rate')?.value||'',
               tm:r?.querySelector('.tm')?.value||'0.00',
               pl:r?.querySelector('.pl')?.value||'0.00',
@@ -4121,7 +4764,7 @@
               meters:pd.meters,folds:pd.folds});
           });
           const inf={};
-          ['cname','count','construction','pickrate','mtrsrate','crumb','lastdate','weaver'].forEach(f=>{
+          ['cname','count','construction','pickrate','mtrsrate','crumb','mendrate','lastdate','weaver'].forEach(f=>{
             inf[f]=document.getElementById(`${pid}-${f}`)?.value||'';
           });
           designRegData[co][dk]={dn,rows,rowCount:state.rowCount,infoFields:inf};
@@ -4203,7 +4846,7 @@
           if(saved?.infoFields){
             const inf=saved.infoFields;
             const setV=(id,v)=>{const el=document.getElementById(id);if(el&&v)el.value=v;};
-            ['cname','count','construction','pickrate','mtrsrate','crumb','lastdate'].forEach(f=>setV(pid+'-'+f,inf[f]));
+            ['cname','count','construction','pickrate','mtrsrate','crumb','mendrate','lastdate'].forEach(f=>setV(pid+'-'+f,inf[f]));
             if(inf.weaver){const ws=document.getElementById(pid+'-weaver');if(ws)ws.value=inf.weaver;}
           }
           state.rows.forEach(idx=>{
@@ -4212,7 +4855,7 @@
             const setF=(cls,v)=>{const el=row.querySelector('.'+cls);if(el&&v!==''&&v!==undefined)el.value=v;};
             const setT=(cls,v)=>{const el=row.querySelector('.'+cls);if(el)el.textContent=v;};
             setF('dateIn',rd.date);setF('pieces',rd.pieces);setF('short',rd.short);
-            setF('mending',rd.mending);setF('rate',rd.rate);setF('tm',rd.tm);setF('pl',rd.pl);
+            setF('mending',rd.mending);setF('mendY',rd.mendY||'');setF('ret',rd.ret||'');setF('rate',rd.rate);setF('tm',rd.tm);setF('pl',rd.pl);
             if(rd.dcno!==undefined){const dc=row.querySelector('.dcno');if(dc)dc.value=rd.dcno;}
             setT('ok',rd.ok);setT('amt',rd.amt);
             if(rd.stageClass){const s=row.querySelector('.stage');if(s){s.className=rd.stageClass;s.textContent=rd.stageText||'Pending';}}
@@ -4232,7 +4875,7 @@
 
       document.addEventListener('input',function(e){
         const t=e.target;
-        if(t.classList.contains('short')||t.classList.contains('mending')||t.classList.contains('rate')){
+        if(t.classList.contains('short')||t.classList.contains('mending')||t.classList.contains('mendY')||t.classList.contains('ret')||t.classList.contains('rate')){
           const tr=t.closest('tr');if(!tr)return;
           // row id format: {co}__{dk}-row-{idx}
           const m=tr.id.match(/^(.+)-row-(\d+)$/);
@@ -4253,5 +4896,1535 @@
       });
     })();
   </script>
+
+  <!-- ══ BILLING MODAL ══ -->
+  <div class="modal" id="billingModal" style="display:none;" onclick="if(event.target===this)closeBillingModal()">
+    <div class="modalBox" style="max-width:560px;max-height:90vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <h3 style="font-family:'Playfair Display',serif;font-size:18px;">💳 Part Bill / Full Bill</h3>
+        <button onclick="closeBillingModal()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;line-height:1;">✕</button>
+      </div>
+      <div id="billingModalContent"></div>
+    </div>
+  </div>
+
+  <!-- ══ PRINT BILL MODAL ══ -->
+  <div class="printBillModal" id="printBillModal">
+    <div class="printBillBox" id="printBillBox">
+      <!-- Filled dynamically -->
+    </div>
+  </div>
+
+  <script>
+    // ══ BILLING STATE (stored per design register) ══
+    // billState[co][dk] = { lastFinalTotal: 0, billHistory: [], billCounter: 0 }
+    let billState = {};
+    // ══ AUDIT LOG ══
+    let auditLog = [];
+    // ══ COMPANY LEGAL INFO ══
+    const companyLegal = {
+      gstin: '33ABCDE1234F1Z5',
+      pan: 'ABCDE1234F',
+      state: 'Tamil Nadu (33)',
+      contact: '+91 98765 43210',
+      bank: 'Indian Bank',
+      accNo: '1234567890',
+      ifsc: 'IDIB000T123',
+      upi: 'texweavepro@okaxis'
+    };
+
+    function ensureBillState(co, dk) {
+      if(!billState[co]) billState[co] = {};
+      if(!billState[co][dk]) billState[co][dk] = { lastFinalTotal: 0, billHistory: [], billCounter: 0 };
+    }
+
+    function openBillingModal(co, dn) {
+      const dk  = dKey(dn);
+      const pid = pageId(co, dn);
+      ensureBillState(co, dk);
+      const bs  = billState[co][dk];
+
+      // Gather current totals (only unbilled rows by default, toggle-able)
+      const showAll = window._billingShowAll || false;
+      let totalAmt=0, totalMend=0, totalOK=0, rowCount=0, unbilledCount=0, totalFabric=0;
+      const regMtrsRate = parseFloat(document.getElementById(pid+'-mtrsrate')?.value)||0;
+      document.querySelectorAll(`#${pid}-tbody tr`).forEach(r => {
+        if(r.classList.contains('filtered-out')) return;
+        const isBilled = r.dataset.billed === 'true';
+        if (!showAll && isBilled) return;
+        unbilledCount++;
+        const rowAmt  = parseFloat(r.querySelector('.amt')?.textContent)||0;
+        const rowMend = parseFloat(r.querySelector('.mendAmt')?.textContent)||0;
+        const rowOK   = parseFloat(r.querySelector('.ok')?.textContent)||0;
+        const rowRate = parseFloat(r.querySelector('.rate')?.value)||0;
+        // ✅ FIX: if row rate is 0, use register mtrsRate for fabric calculation
+        const effectiveRate = rowRate > 0 ? rowRate : regMtrsRate;
+        const rowFab  = r2(rowOK * effectiveRate);
+        totalFabric += rowFab;
+        // Recalculate row amount using effective rate if needed
+        const correctedAmt = r2(rowFab + rowMend);
+        totalAmt  += correctedAmt;
+        totalMend += rowMend;
+        totalOK   += rowOK;
+        rowCount++;
+      });
+
+      const gstRate    = 5;
+      const discount   = 0;
+      const transport  = 0;
+      const packing    = 0;
+      // ✅ FIX: fabricAmt = OK Meter × Rate (already computed per-row above)
+      const fabricAmt  = r2(totalFabric);
+      const gst        = r2((totalAmt - discount) * (gstRate/100));
+      const finalTotal = r2(totalAmt - discount + transport + packing + gst);
+      const partBill   = r2(finalTotal - bs.lastFinalTotal);
+      const billNo     = `PB${String(bs.billCounter + 1).padStart(3,'0')}`;
+
+      // Detect bill type
+      const billType = bs.billHistory.length === 0 ? 'FIRST BILL' :
+                       (partBill === finalTotal ? 'FULL BILL' : 'PART BILL');
+
+      const content = document.getElementById('billingModalContent');
+      content.innerHTML = `
+        <div class="billingPanel">
+          <h4>📊 Current Bill Summary
+            <span style="background:#c9a84c;color:#0d2d4a;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:1px;margin-left:8px;">${billType}</span>
+          </h4>
+          <div class="billGrid">
+            <div class="billCard"><div class="bv" style="color:var(--gold2);">${r2(totalOK).toFixed(2)}</div><div class="bl">OK Meter</div></div>
+            <div class="billCard"><div class="bv" style="color:#c084fc;">₹${r2(totalMend).toFixed(2)}</div><div class="bl">Mending</div></div>
+            <div class="billCard"><div class="bv" style="color:#2ecc8e;">₹${r2(fabricAmt).toFixed(2)}</div><div class="bl">Fabric Amt</div></div>
+            <div class="billCard"><div class="bv" style="color:#5fd3d2;">₹${r2(totalAmt).toFixed(2)}</div><div class="bl">Subtotal</div></div>
+          </div>
+
+          <!-- ADVANCED CALC PANEL -->
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;margin-bottom:14px;">
+            <div style="font-size:10px;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">⚙️ Bill Configuration</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+              <div>
+                <label style="font-size:10px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px;">GST Rate %</label>
+                <select id="bill-gst-rate" onchange="recalcBillingModal('${co}','${dn}')" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:8px;font-size:12px;color:white;font-family:'Outfit',sans-serif;">
+                  <option value="0">0% (Exempt)</option>
+                  <option value="5" selected>5% (Standard)</option>
+                  <option value="12">12%</option>
+                  <option value="18">18%</option>
+                  <option value="28">28%</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:10px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px;">Discount ₹</label>
+                <input type="number" id="bill-discount" value="0" min="0" onchange="recalcBillingModal('${co}','${dn}')" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:8px;font-size:12px;color:white;font-family:'Outfit',sans-serif;">
+              </div>
+              <div>
+                <label style="font-size:10px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px;">Transport / Extra ₹</label>
+                <input type="number" id="bill-transport" value="0" min="0" onchange="recalcBillingModal('${co}','${dn}')" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:8px;font-size:12px;color:white;font-family:'Outfit',sans-serif;">
+              </div>
+            </div>
+            <div style="margin-top:10px;">
+              <label style="font-size:10px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px;">Packing Charges ₹</label>
+              <input type="number" id="bill-packing" value="0" min="0" onchange="recalcBillingModal('${co}','${dn}')" style="width:160px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:8px;font-size:12px;color:white;font-family:'Outfit',sans-serif;">
+              &nbsp;&nbsp;
+              <label style="font-size:10px;color:rgba(255,255,255,.5);">
+                <input type="checkbox" id="bill-show-all" ${showAll?'checked':''} onchange="window._billingShowAll=this.checked;openBillingModal('${co}','${dn}')"> Include already-billed rows
+              </label>
+            </div>
+          </div>
+
+          <div id="bill-totals-panel">
+            <div class="billTotalsRow">
+              <div class="billTotalBox"><label>GST (<span id="gst-rate-lbl">5</span>%)</label><span id="b-gst" style="color:#e67e22;">₹${r2(gst).toFixed(2)}</span></div>
+              <div class="billTotalBox"><label>Cumulative Total</label><span id="b-cum" style="color:var(--gold2);">₹${r2(finalTotal).toFixed(2)}</span></div>
+              <div class="billTotalBox"><label>Previous Billed</label><span style="color:rgba(255,255,255,.5);">₹${r2(bs.lastFinalTotal).toFixed(2)}</span></div>
+            </div>
+          </div>
+          <div style="background:rgba(201,168,76,.12);border:2px solid rgba(201,168,76,.5);border-radius:10px;padding:14px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:3px;">PART BILL AMOUNT (Cumulative − Previous)</div>
+              <div id="b-partbill" style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gold2);">₹${r2(partBill).toFixed(2)}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:10px;color:rgba(255,255,255,.4);">Bill Number</div>
+              <div style="font-size:20px;font-weight:700;color:#5fd3d2;">${billNo}</div>
+              <div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:2px;">${rowCount} rows | ${unbilledCount} unbilled</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btnConfirmBill" onclick="confirmBillFromModal('${co}','${dn}','${billNo}')">✅ Confirm Bill (${billNo})</button>
+            <button class="btnPartBill"   onclick="printBillInvoiceFromModal('${co}','${dn}','${billNo}',false)">🖨️ Preview Invoice</button>
+            <button onclick="closeBillingModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);padding:9px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">Cancel</button>
+          </div>
+        </div>
+        ${bs.billHistory.length ? `
+        <div style="margin-top:18px;">
+          <div style="font-size:10px;color:rgba(255,255,255,.35);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">📋 Bill History</div>
+          <table class="billHistTable">
+            <thead><tr><th>Bill No</th><th>Date</th><th>Part Bill ₹</th><th>Paid ₹</th><th>Balance ₹</th><th></th></tr></thead>
+            <tbody>
+              ${bs.billHistory.map(b=>`
+                <tr>
+                  <td style="color:#5fd3d2;font-weight:700;">${b.billNo}</td>
+                  <td style="color:rgba(255,255,255,.5);">${b.date}</td>
+                  <td style="color:var(--gold2);font-weight:700;">₹${r2(b.partBill).toFixed(2)}</td>
+                  <td style="color:#2ecc8e;">₹${r2(b.paid||0).toFixed(2)}</td>
+                  <td style="color:${(b.balance||b.partBill)>0?'#e74c3c':'#2ecc8e'};">₹${r2(b.balance||b.partBill).toFixed(2)}</td>
+                  <td><button onclick="printBillInvoice('${co}','${dn.replace(/'/g,"\'")}',${0},${0},'${0}',true,'${b.billNo}')" style="background:rgba(14,124,123,.2);border:1px solid rgba(14,124,123,.3);color:#5fd3d2;padding:3px 9px;border-radius:5px;font-size:10px;cursor:pointer;font-family:'Outfit',sans-serif;">🖨️ Reprint</button>
+                  <button onclick="markPaidModal('${co}','${dn}','${b.billNo}')" style="background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.3);color:#2ecc8e;padding:3px 9px;border-radius:5px;font-size:10px;cursor:pointer;font-family:'Outfit',sans-serif;margin-left:3px;">💰 Pay</button></td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>` : ''}
+      `;
+      // Store current values for recalc
+      window._currentBillContext = { co, dn, totalAmt, totalMend, totalOK, bs, billNo, fabricAmt, _finalTotal: finalTotal, _partBill: partBill, _gstRate: gstRate, _discount: discount, _transport: transport, _gst: gst };
+      document.getElementById('billingModal').style.display = 'flex';
+    }
+
+    // ── Live recalc when user changes GST/Discount/Transport ──
+    function recalcBillingModal(co, dn) {
+      const ctx = window._currentBillContext;
+      if(!ctx) return;
+      const gstRate   = parseFloat(document.getElementById('bill-gst-rate')?.value)||5;
+      const discount  = parseFloat(document.getElementById('bill-discount')?.value)||0;
+      const transport = parseFloat(document.getElementById('bill-transport')?.value)||0;
+      const packing   = parseFloat(document.getElementById('bill-packing')?.value)||0;
+      const gst        = r2((ctx.totalAmt - discount) * (gstRate/100));
+      const finalTotal = r2(ctx.totalAmt - discount + transport + packing + gst);
+      const partBill   = r2(finalTotal - ctx.bs.lastFinalTotal);
+      document.getElementById('gst-rate-lbl') && (document.getElementById('gst-rate-lbl').textContent = gstRate);
+      document.getElementById('b-gst') && (document.getElementById('b-gst').textContent = '₹'+r2(gst).toFixed(2));
+      document.getElementById('b-cum') && (document.getElementById('b-cum').textContent = '₹'+r2(finalTotal).toFixed(2));
+      document.getElementById('b-partbill') && (document.getElementById('b-partbill').textContent = '₹'+r2(partBill).toFixed(2));
+      window._currentBillContext._gstRate   = gstRate;
+      window._currentBillContext._discount  = discount;
+      window._currentBillContext._transport = transport + packing;
+      window._currentBillContext._finalTotal = finalTotal;
+      window._currentBillContext._partBill   = partBill;
+      window._currentBillContext._gst        = gst;
+    }
+
+    // ── Confirm from modal (reads live values) ──
+    function confirmBillFromModal(co, dn, billNo) {
+      const ctx      = window._currentBillContext;
+      const gstRate  = parseFloat(document.getElementById('bill-gst-rate')?.value)||5;
+      const discount = parseFloat(document.getElementById('bill-discount')?.value)||0;
+      const packing  = parseFloat(document.getElementById('bill-packing')?.value)||0;
+      const transport= parseFloat(document.getElementById('bill-transport')?.value)||0;
+      const gst        = ctx._gst        ?? r2(ctx.totalAmt * gstRate/100);
+      const finalTotal = ctx._finalTotal ?? r2(ctx.totalAmt - discount + transport + packing + gst);
+      const partBill   = ctx._partBill   ?? r2(finalTotal - ctx.bs.lastFinalTotal);
+      confirmBill(co, dn, finalTotal, partBill, billNo, gstRate, discount, transport, packing);
+    }
+
+    // ── Print from modal (reads live values) ──
+    function printBillInvoiceFromModal(co, dn, billNo, isReprint) {
+      const ctx      = window._currentBillContext;
+      const gstRate  = parseFloat(document.getElementById('bill-gst-rate')?.value)||5;
+      const discount = parseFloat(document.getElementById('bill-discount')?.value)||0;
+      const packing  = parseFloat(document.getElementById('bill-packing')?.value)||0;
+      const transport= parseFloat(document.getElementById('bill-transport')?.value)||0;
+      const gst        = r2((ctx.totalAmt - discount) * gstRate/100);
+      const finalTotal = ctx._finalTotal ?? r2(ctx.totalAmt - discount + transport + packing + gst);
+      const partBill   = ctx._partBill   ?? r2(finalTotal - ctx.bs.lastFinalTotal);
+      printBillInvoice(co, dn, finalTotal, partBill, billNo, isReprint, null, gstRate, discount, transport + packing);
+    }
+
+    // ── Mark bill as paid ──
+    function markPaidModal(co, dn, billNo) {
+      const amt = parseFloat(prompt(`Enter paid amount for ${billNo}:`));
+      if(isNaN(amt) || amt < 0) return;
+      const dk = dKey(dn);
+      ensureBillState(co, dk);
+      const bs = billState[co][dk];
+      const bill = bs.billHistory.find(b => b.billNo === billNo);
+      if(bill) {
+        bill.paid = r2((bill.paid||0) + amt);
+        bill.balance = r2(bill.partBill - bill.paid);
+        auditLog.push({ action: 'PAYMENT_RECEIVED', billNo, co, dn, amount: amt, date: new Date().toISOString(), user: 'admin' });
+        saveAll();
+        flashToast(`💰 Payment ₹${r2(amt).toFixed(2)} recorded for ${billNo}`);
+        openBillingModal(co, dn);
+      }
+    }
+
+    function closeBillingModal() {
+      document.getElementById('billingModal').style.display = 'none';
+    }
+
+    function confirmBill(co, dn, finalTotal, partBill, billNo, gstRate, discount, transport, packing) {
+      // ── Validation ──
+      if(!billNo || partBill <= 0) { flashToast('⚠️ Invalid bill data'); return; }
+      const dk = dKey(dn);
+      ensureBillState(co, dk);
+      const bs = billState[co][dk];
+      const now = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+      const paid = 0; // Default 0 paid on creation
+      // Save bill to history (with extra fields)
+      bs.billHistory.push({ billNo, date: now, partBill, cumTotal: finalTotal, gstRate: gstRate||5, discount: discount||0, transport: transport||0, packing: packing||0, paid, balance: partBill });
+      bs.lastFinalTotal = finalTotal;
+      bs.billCounter++;
+      // ── Row-level billed tracking ──
+      const pid = pageId(co, dn);
+      document.querySelectorAll(`#${pid}-tbody tr`).forEach(r => {
+        r.dataset.billed = 'true';
+        r.dataset.billNo = billNo;
+      });
+      // ── Audit Log ──
+      auditLog.push({ action: 'BILL_CREATED', billNo, co, dn, partBill, finalTotal, date: new Date().toISOString(), user: 'admin' });
+      saveAll();
+      // Reset mending Y values after billing
+      document.querySelectorAll(`#${pid}-tbody tr .mendY`).forEach(el => el.value = '');
+      recalcAllRows(pid);
+      flashToast(`✅ Bill ${billNo} confirmed — ₹${r2(partBill).toFixed(2)} locked`);
+      closeBillingModal();
+      openBillingModal(co, dn); // Reopen to show updated history
+    }
+
+    function printBillInvoice(co, dn, finalTotal, partBill, billNo, isReprint, reprintBillNo, gstRateOverride, discountOverride, transportOverride) {
+      const dk  = dKey(dn);
+      const pid = pageId(co, dn);
+      const c   = companies[co];
+      ensureBillState(co, dk);
+      const bs  = billState[co][dk];
+
+      let billData = { billNo, partBill, finalTotal };
+      if(isReprint && reprintBillNo) {
+        const found = bs.billHistory.find(b => b.billNo === reprintBillNo);
+        if(found) billData = { billNo: found.billNo, partBill: found.partBill, finalTotal: found.cumTotal, gstRate: found.gstRate||5, discount: found.discount||0, transport: found.transport||0, paid: found.paid||0 };
+      }
+      const usedGstRate   = gstRateOverride ?? billData.gstRate  ?? 5;
+      const usedDiscount  = discountOverride ?? billData.discount ?? 0;
+      const usedTransport = transportOverride ?? billData.transport ?? 0;
+
+      // Gather table rows for invoice
+      let rows = [], totalOK=0, totalMend=0, totalFab=0, totalTM=0, totalPL=0, totalSH=0, totalRET=0;
+      const invMtrsRate = parseFloat(document.getElementById(pid+'-mtrsrate')?.value)||0;
+      document.querySelectorAll(`#${pid}-tbody tr`).forEach((r,i) => {
+        const ok  = parseFloat(r.querySelector('.ok')?.textContent)||0;
+        const men = parseFloat(r.querySelector('.mendAmt')?.textContent)||0;
+        const tm  = parseFloat(r.querySelector('.tm')?.value)||0;
+        const pl  = parseFloat(r.querySelector('.pl')?.value)||0;
+        const sh  = parseFloat(r.querySelector('.short')?.value)||0;
+        const ret = parseFloat(r.querySelector('.ret')?.value)||0;
+        // ✅ FIX: use effective rate (per-row OR register mtrsRate)
+        const rowRate = parseFloat(r.querySelector('.rate')?.value)||0;
+        const effectiveRate = rowRate > 0 ? rowRate : invMtrsRate;
+        const fab = r2(ok * effectiveRate);
+        const amt = r2(fab + men);
+        totalOK += ok; totalMend += men; totalFab += fab;
+        totalTM += tm; totalPL += pl; totalSH += sh; totalRET += ret;
+        rows.push({
+          no: i+1,
+          dc: r.querySelector('.dcno')?.value||'',
+          date: r.querySelector('.dateIn')?.value||'',
+          tm, pl, sh, ret, ok, men, fab, amt,
+          stage: r.querySelector('.stage')?.textContent||''
+        });
+      });
+      const subtotal = r2(totalFab + totalMend);
+      const gst      = r2((subtotal - usedDiscount) * (usedGstRate/100));
+      const grand    = r2(subtotal - usedDiscount + usedTransport + gst);
+      const prev     = r2(bs.lastFinalTotal - billData.partBill);
+      const paid     = billData.paid || 0;
+      const balance  = r2(billData.partBill - paid);
+      // Detect bill type
+      const billType = bs.billHistory.length === 0 ? 'FIRST BILL' :
+                       (billData.partBill === billData.finalTotal ? 'FULL BILL' : 'PART BILL');
+
+      const now = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+      const cname = document.getElementById(pid+'-cname')?.value || c.name;
+      const count = document.getElementById(pid+'-count')?.value || '';
+      const constr= document.getElementById(pid+'-construction')?.value || '';
+
+      // ── Number to words (Indian system) ──
+      function numToWords(n) {
+        const a=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+        const b=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+        if(n===0)return'Zero';
+        function w(num){
+          if(num<20)return a[num];
+          if(num<100)return b[Math.floor(num/10)]+(num%10?' '+a[num%10]:'');
+          if(num<1000)return a[Math.floor(num/100)]+' Hundred'+(num%100?' '+w(num%100):'');
+          if(num<100000)return w(Math.floor(num/1000))+' Thousand'+(num%1000?' '+w(num%1000):'');
+          if(num<10000000)return w(Math.floor(num/100000))+' Lakh'+(num%100000?' '+w(num%100000):'');
+          return w(Math.floor(num/10000000))+' Crore'+(num%10000000?' '+w(num%10000000):'');
+        }
+        const intPart=Math.floor(n), decPart=Math.round((n-intPart)*100);
+        let result=w(intPart)+' Rupees';
+        if(decPart>0)result+=' and '+w(decPart)+' Paise';
+        return result+' Only';
+      }
+
+      // ── Store structured print data for clean print window ──
+      window._printData = {
+        billNo: billData.billNo, partBill: r2(billData.partBill), finalTotal: r2(billData.finalTotal),
+        billType, now, cname, dn, companyName: c.name,
+        count, constr,
+        gstRate: usedGstRate, discount: usedDiscount, transport: usedTransport,
+        subtotal, gst, grand,
+        prevBilled: r2(Math.max(0, bs.lastFinalTotal - billData.partBill)),
+        paid: r2(paid), balance: r2(balance),
+        rows, billHistory: bs.billHistory || [],
+        amtWords: numToWords(r2(billData.partBill)),
+        totals: {
+          tm: r2(totalTM), pl: r2(totalPL), sh: r2(totalSH), ret: r2(totalRET),
+          ok: r2(totalOK), men: r2(totalMend), fab: r2(totalFab),
+          amt: r2(totalFab + totalMend)
+        },
+        specs: {
+          pickrate: document.getElementById(pid+'-pickrate')?.value||'',
+          mtrsrate: document.getElementById(pid+'-mtrsrate')?.value||'',
+          crumb: document.getElementById(pid+'-crumb')?.value||'',
+          mendrate: document.getElementById(pid+'-mendrate')?.value||'',
+          weaver: document.getElementById(pid+'-weaver')?.value||'',
+          lastdate: (()=>{const ld=document.getElementById(pid+'-lastdate')?.value;return ld?new Date(ld).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):''})()
+        },
+        legal: companyLegal
+      };
+
+      const invoiceHTML = `
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+          .inv * { box-sizing:border-box; margin:0; padding:0; font-family:'Outfit',sans-serif; }
+          .inv { background:white; color:#111; width:100%; }
+          /* ── HEADER BAND ── */
+          .inv-header {
+            background: linear-gradient(135deg, #0d2d4a 0%, #0f3a5e 50%, #0e7c7b 100%);
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+          }
+          .inv-header::before {
+            content:'';
+            position:absolute;
+            top:-60px; right:-60px;
+            width:220px; height:220px;
+            border-radius:50%;
+            background: rgba(201,168,76,.15);
+          }
+          .inv-header::after {
+            content:'';
+            position:absolute;
+            bottom:-40px; left:30%;
+            width:160px; height:160px;
+            border-radius:50%;
+            background: rgba(14,124,123,.2);
+          }
+          .inv-header-inner {
+            position:relative; z-index:1;
+            display:flex; justify-content:space-between; align-items:flex-start;
+            padding: 28px 32px 22px;
+          }
+          .inv-brand { display:flex; align-items:center; gap:14px; }
+          .inv-brand-icon {
+            width:54px; height:54px;
+            background: linear-gradient(135deg,#c9a84c,#e8c96a);
+            border-radius:14px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:26px;
+            box-shadow: 0 6px 20px rgba(201,168,76,.4);
+          }
+          .inv-brand-name {
+            font-family:'Playfair Display',serif;
+            font-size:26px; font-weight:700; color:white;
+            line-height:1.1;
+          }
+          .inv-brand-tagline {
+            font-size:10px; color:rgba(255,255,255,.5);
+            text-transform:uppercase; letter-spacing:2px; margin-top:3px;
+          }
+          .inv-bill-meta { text-align:right; }
+          .inv-bill-label {
+            font-size:9px; color:rgba(255,255,255,.45);
+            text-transform:uppercase; letter-spacing:1.5px;
+          }
+          .inv-bill-no {
+            font-family:'Playfair Display',serif;
+            font-size:28px; font-weight:700;
+            color:#e8c96a; line-height:1.1; margin-top:2px;
+          }
+          .inv-bill-date { font-size:11px; color:rgba(255,255,255,.55); margin-top:4px; }
+          /* INVOICE type ribbon */
+          .inv-type-bar {
+            background: rgba(201,168,76,.2);
+            border-top: 1px solid rgba(201,168,76,.3);
+            padding: 7px 32px;
+            display:flex; align-items:center; gap:10px;
+          }
+          .inv-type-pill {
+            background: #c9a84c;
+            color: #0d2d4a;
+            font-size:9px; font-weight:800;
+            text-transform:uppercase; letter-spacing:2px;
+            padding:3px 12px; border-radius:20px;
+          }
+          .inv-type-text { font-size:10px; color:rgba(255,255,255,.45); letter-spacing:.5px; }
+          /* ── PARTY & DESIGN INFO BAND ── */
+          .inv-info-band {
+            display:grid; grid-template-columns:1fr 1fr 1fr;
+            border-bottom: 2px solid #e8f0f8;
+          }
+          .inv-info-cell {
+            padding: 16px 20px;
+            border-right: 1px solid #e8f0f8;
+          }
+          .inv-info-cell:last-child { border-right:none; }
+          .inv-info-label {
+            font-size:8.5px; font-weight:700; color:#8fa0b3;
+            text-transform:uppercase; letter-spacing:1.2px; margin-bottom:5px;
+          }
+          .inv-info-value {
+            font-family:'Playfair Display',serif;
+            font-size:15px; font-weight:700; color:#0d2d4a; line-height:1.2;
+          }
+          .inv-info-sub { font-size:10px; color:#8fa0b3; margin-top:3px; }
+          /* ── SPECS BAR ── */
+          .inv-specs-bar {
+            background: #f7fafd;
+            border-bottom: 1px solid #e8f0f8;
+            display:flex; gap:0;
+          }
+          .inv-spec {
+            flex:1; padding:10px 16px;
+            border-right:1px solid #e8f0f8;
+            text-align:center;
+          }
+          .inv-spec:last-child { border-right:none; }
+          .inv-spec-label { font-size:8px; color:#8fa0b3; text-transform:uppercase; letter-spacing:1px; }
+          .inv-spec-value { font-size:13px; font-weight:700; color:#0d3a5c; margin-top:2px; }
+          /* ── TABLE ── */
+          .inv-table-wrap { padding: 0; overflow-x:auto; }
+          .inv-table {
+            width:100%; border-collapse:collapse; font-size:11px;
+          }
+          .inv-table thead tr {
+            background: #0d3a5c;
+          }
+          .inv-table thead th {
+            color:white; padding:9px 10px;
+            font-size:9px; font-weight:700;
+            text-transform:uppercase; letter-spacing:.7px;
+            white-space:nowrap;
+          }
+          .inv-table thead th:first-child { padding-left:16px; text-align:left; }
+          .inv-table thead th:last-child  { padding-right:16px; }
+          .inv-table tbody tr:nth-child(even) { background:#f4f8fc; }
+          .inv-table tbody tr:nth-child(odd)  { background:#ffffff; }
+          .inv-table tbody tr:hover { background:#eaf2ff; }
+          .inv-table td {
+            padding:8px 10px;
+            border-bottom:1px solid #e8f0f8;
+            color:#2c3e50; text-align:right;
+          }
+          .inv-table td:first-child { padding-left:16px; text-align:left; color:#8fa0b3; font-size:10px; }
+          .inv-table td:nth-child(2) { text-align:left; font-weight:700; color:#0d3a5c; }
+          .inv-table td:nth-child(3) { text-align:center; color:#6b7c93; font-size:10px; }
+          .inv-table .td-ok  { font-weight:700; color:#1a6b4a; }
+          .inv-table .td-mend { color:#7b3fa0; }
+          .inv-table .td-amt { font-weight:800; color:#0d3a5c; }
+          .inv-table .td-stage {
+            text-align:center;
+            font-size:8.5px; font-weight:700;
+            text-transform:uppercase; letter-spacing:.5px;
+          }
+          .stage-done  { color:#1a6b4a; background:#e6f4ec; padding:2px 7px; border-radius:8px; border:1px solid #b7dfca; }
+          .stage-pend  { color:#c0392b; background:#fdecea; padding:2px 7px; border-radius:8px; border:1px solid #f5c6c2; }
+          .stage-run   { color:#1565a0; background:#e3f0fc; padding:2px 7px; border-radius:8px; border:1px solid #b3d1f0; }
+          /* ── TOTALS SECTION ── */
+          .inv-totals-wrap {
+            display:flex; justify-content:space-between; align-items:flex-start;
+            padding: 20px 24px; gap:20px; background:#fafcff;
+            border-top: 2px solid #e8f0f8;
+          }
+          .inv-summary-stats {
+            display:grid; grid-template-columns:1fr 1fr 1fr;
+            gap:10px; flex:1;
+          }
+          .inv-stat-box {
+            background:white; border:1px solid #e8f0f8;
+            border-radius:10px; padding:12px 14px;
+            text-align:center;
+            box-shadow: 0 2px 8px rgba(13,58,92,.06);
+          }
+          .inv-stat-box .isv {
+            font-family:'Playfair Display',serif;
+            font-size:18px; font-weight:700; margin-bottom:3px;
+          }
+          .inv-stat-box .isl { font-size:8px; color:#8fa0b3; text-transform:uppercase; letter-spacing:.8px; }
+          .inv-calc-block { width:280px; flex-shrink:0; }
+          .inv-calc-row {
+            display:flex; justify-content:space-between; align-items:center;
+            padding:7px 0; border-bottom:1px dashed #e8f0f8;
+            font-size:12px;
+          }
+          .inv-calc-row:last-child { border-bottom:none; }
+          .inv-calc-label { color:#6b7c93; }
+          .inv-calc-val   { font-weight:600; color:#2c3e50; }
+          /* ── GRAND TOTAL BOXES ── */
+          .inv-grand-block { padding: 0 24px 20px; }
+          .inv-grand-grid {
+            display:grid; grid-template-columns:1fr 1fr 1fr;
+            gap:10px;
+          }
+          .inv-grand-box {
+            border-radius:12px; padding:14px 18px;
+            display:flex; justify-content:space-between; align-items:center;
+          }
+          .inv-grand-box.cumulative {
+            background: linear-gradient(135deg,#0d2d4a,#0f3a5e);
+            border:2px solid #1a4a6e;
+            grid-column: span 1;
+          }
+          .inv-grand-box.previous {
+            background: linear-gradient(135deg,#1a4a2e,#1a6b4a);
+            border:2px solid #2a7a4a;
+          }
+          .inv-grand-box.partbill {
+            background: linear-gradient(135deg,#8a6a1a,#c9a84c);
+            border:2px solid #e8c96a;
+          }
+          .inv-grand-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.7px; }
+          .inv-grand-amount { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; }
+          .inv-grand-box.cumulative .inv-grand-label,
+          .inv-grand-box.cumulative .inv-grand-amount { color:white; }
+          .inv-grand-box.previous .inv-grand-label,
+          .inv-grand-box.previous .inv-grand-amount { color:rgba(255,255,255,.9); }
+          .inv-grand-box.partbill .inv-grand-label { color:#0d2d4a; }
+          .inv-grand-box.partbill .inv-grand-amount { color:#0d2d4a; font-size:24px; }
+          /* ── AMOUNT IN WORDS ── */
+          .inv-words {
+            margin: 0 24px 16px;
+            background:#fffbf0; border:1px solid #e8c96a;
+            border-left:4px solid #c9a84c;
+            border-radius:8px; padding:10px 16px;
+            display:flex; align-items:center; gap:10px;
+          }
+          .inv-words-label { font-size:9px; font-weight:700; color:#8a6a1a; text-transform:uppercase; letter-spacing:1px; white-space:nowrap; }
+          .inv-words-text  { font-size:11px; font-weight:600; color:#5a4010; font-style:italic; }
+          /* ── SIGNATURE STRIP ── */
+          .inv-sig-strip {
+            display:grid; grid-template-columns:1fr 1fr 1fr;
+            gap:0; border-top:1px solid #e8f0f8;
+            margin: 0 24px 20px;
+            border-radius:8px; overflow:hidden;
+            border:1px solid #e8f0f8;
+          }
+          .inv-sig-cell {
+            padding:14px 16px; text-align:center;
+            border-right:1px solid #e8f0f8;
+          }
+          .inv-sig-cell:last-child { border-right:none; }
+          .inv-sig-line { border-top:1.5px solid #c5d5e5; margin-top:28px; }
+          .inv-sig-label { font-size:9px; color:#8fa0b3; text-transform:uppercase; letter-spacing:1px; margin-top:5px; }
+          /* ── FOOTER ── */
+          .inv-footer {
+            background: #0d2d4a;
+            padding:12px 24px;
+            display:flex; justify-content:space-between; align-items:center;
+            border-radius:0 0 12px 12px;
+          }
+          .inv-footer-text { font-size:9px; color:rgba(255,255,255,.4); letter-spacing:.5px; }
+          .inv-footer-btns { display:flex; gap:8px; }
+          .inv-btn-print {
+            background: linear-gradient(135deg,#c9a84c,#e8c96a);
+            color:#0d2d4a; border:none;
+            padding:8px 20px; border-radius:7px;
+            cursor:pointer; font-family:'Outfit',sans-serif;
+            font-size:12px; font-weight:800; letter-spacing:.5px;
+            box-shadow:0 3px 10px rgba(201,168,76,.4);
+          }
+          .inv-btn-close {
+            background: rgba(255,255,255,.1);
+            color:rgba(255,255,255,.7); border:1px solid rgba(255,255,255,.2);
+            padding:8px 18px; border-radius:7px;
+            cursor:pointer; font-family:'Outfit',sans-serif; font-size:12px;
+          }
+          @media print {
+            .inv-footer-btns { display:none !important; }
+            .inv { border-radius:0 !important; page-break-after: always; background:white !important; }
+            .inv-table tr { page-break-inside: avoid; }
+            .inv-grand-block, .inv-words, .inv-sig-strip { page-break-inside: avoid; }
+            .inv-table-wrap { overflow-x: visible !important; }
+          }
+        </style>
+
+        <div class="inv">
+          <!-- ══ HEADER ══ -->
+          <div class="inv-header">
+            <div class="inv-header-inner">
+              <div class="inv-brand">
+                <div class="inv-brand-icon">🧵</div>
+                <div>
+                  <div class="inv-brand-name">TexWeave Pro</div>
+                  <div class="inv-brand-tagline">Textile ERP · Production Invoice</div>
+                </div>
+              </div>
+              <div class="inv-bill-meta">
+                <div style="text-align:right;font-size:10px;color:rgba(255,255,255,.65);margin-bottom:6px;line-height:1.7;">
+                  GSTIN: ${companyLegal.gstin}<br>
+                  PAN: ${companyLegal.pan}<br>
+                  State: ${companyLegal.state}<br>
+                  Contact: ${companyLegal.contact}
+                </div>
+                <div class="inv-bill-label">Invoice / Bill No.</div>
+                <div class="inv-bill-no">${billData.billNo}</div>
+                <div class="inv-bill-date">📅 ${now}</div>
+              </div>
+            </div>
+            <div class="inv-type-bar">
+              <span class="inv-type-pill">${billType}</span>
+              <span class="inv-type-text">Weaving Production Register · GST Invoice · Cumulative Billing System</span>
+            </div>
+          </div>
+
+          <!-- ══ PARTY & DESIGN INFO ══ -->
+          <div class="inv-info-band">
+            <div class="inv-info-cell">
+              <div class="inv-info-label">🏭 Party / Company</div>
+              <div class="inv-info-value">${cname}</div>
+              <div class="inv-info-sub">${c.name} &nbsp;·&nbsp; Weaving Unit</div>
+            </div>
+            <div class="inv-info-cell">
+              <div class="inv-info-label">🎨 Design Number</div>
+              <div class="inv-info-value">${dn}</div>
+              <div class="inv-info-sub">
+                ${count ? `Count: <strong>${count}</strong>` : ''}
+                ${constr ? `&nbsp;·&nbsp; Construction: <strong>${constr}</strong>` : ''}
+              </div>
+            </div>
+            <div class="inv-info-cell" style="background:#fffbf0;">
+              <div class="inv-info-label">💳 Bill Reference</div>
+              <div class="inv-info-value" style="color:#c9a84c;">${billData.billNo}</div>
+              <div class="inv-info-sub">Previous Bills: ${bs.billHistory.length > 0 ? bs.billHistory.length : '0'} &nbsp;·&nbsp; Total Entries: ${rows.length}</div>
+            </div>
+          </div>
+
+          <!-- ══ SPECS BAR ══ -->
+          <div class="inv-specs-bar">
+            <div class="inv-spec">
+              <div class="inv-spec-label">Pick Rate</div>
+              <div class="inv-spec-value">${document.getElementById(pid+'-pickrate')?.value||'—'}</div>
+            </div>
+            <div class="inv-spec">
+              <div class="inv-spec-label">Mtrs Rate ₹</div>
+              <div class="inv-spec-value">${document.getElementById(pid+'-mtrsrate')?.value ? '₹'+document.getElementById(pid+'-mtrsrate').value : '—'}</div>
+            </div>
+            <div class="inv-spec">
+              <div class="inv-spec-label">Crumb %</div>
+              <div class="inv-spec-value">${document.getElementById(pid+'-crumb')?.value||'—'}</div>
+            </div>
+            <div class="inv-spec">
+              <div class="inv-spec-label">Mend Rate ₹/hr</div>
+              <div class="inv-spec-value">${document.getElementById(pid+'-mendrate')?.value ? '₹'+document.getElementById(pid+'-mendrate').value : '—'}</div>
+            </div>
+            <div class="inv-spec">
+              <div class="inv-spec-label">Weaver</div>
+              <div class="inv-spec-value" style="font-size:11px;">${document.getElementById(pid+'-weaver')?.value||'—'}</div>
+            </div>
+            <div class="inv-spec">
+              <div class="inv-spec-label">Last Date</div>
+              <div class="inv-spec-value" style="font-size:11px;">${(()=>{const ld=document.getElementById(pid+'-lastdate')?.value;return ld?new Date(ld).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';})()}</div>
+            </div>
+          </div>
+
+          <!-- ══ PRODUCTION TABLE ══ -->
+          <div class="inv-table-wrap">
+            <table class="inv-table">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">#</th>
+                  <th style="text-align:left;">DC No.</th>
+                  <th style="text-align:center;">Date</th>
+                  <th>Total M</th>
+                  <th>Pin Less</th>
+                  <th>Short</th>
+                  <th>Return</th>
+                  <th>OK Meter</th>
+                  <th>Mend Amt ₹</th>
+                  <th>Fabric ₹</th>
+                  <th>Total ₹</th>
+                  <th style="text-align:center;">Stage</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows.map((r,i) => {
+                  const stageClass = r.stage.toLowerCase().includes('comp') ? 'stage-done' : r.stage.toLowerCase().includes('run') ? 'stage-run' : 'stage-pend';
+                  const pl  = parseFloat(document.getElementById(pid+'-row-'+(r.no-1))?.querySelector('.pl')?.value)||0;
+                  const sh  = parseFloat(document.getElementById(pid+'-row-'+(r.no-1))?.querySelector('.short')?.value)||0;
+                  const ret = parseFloat(document.getElementById(pid+'-row-'+(r.no-1))?.querySelector('.ret')?.value)||0;
+                  return `<tr>
+                    <td>${r.no}</td>
+                    <td>${r.dc||'—'}</td>
+                    <td style="text-align:center;color:#6b7c93;font-size:10px;">${r.date||'—'}</td>
+                    <td>${r.tm.toFixed(2)}</td>
+                    <td style="color:#c0392b;">${pl.toFixed(2)}</td>
+                    <td style="color:#e67e22;">${sh.toFixed(2)}</td>
+                    <td style="color:#7b3fa0;">${ret.toFixed(2)}</td>
+                    <td class="td-ok">${r.ok.toFixed(2)}</td>
+                    <td class="td-mend">${r.men.toFixed(2)}</td>
+                    <td>${r.fab.toFixed(2)}</td>
+                    <td class="td-amt">${r.amt.toFixed(2)}</td>
+                    <td class="td-stage"><span class="${stageClass}">${r.stage||'Pending'}</span></td>
+                  </tr>`;
+                }).join('')}
+                <!-- TOTALS ROW -->
+                <tr style="background:#0d3a5c !important;">
+                  <td style="color:rgba(255,255,255,.5);padding-left:16px;" colspan="3"><strong style="color:white;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">TOTALS</strong></td>
+                  <td style="color:white;font-weight:700;">${rows.reduce((s,r)=>s+r.tm,0).toFixed(2)}</td>
+                  <td style="color:#ff9f8e;font-weight:700;">${rows.reduce((s,r)=>s+(parseFloat(document.getElementById(pid+'-row-'+(r.no-1))?.querySelector('.pl')?.value)||0),0).toFixed(2)}</td>
+                  <td style="color:#f0a070;font-weight:700;">${rows.reduce((s,r)=>s+(parseFloat(document.getElementById(pid+'-row-'+(r.no-1))?.querySelector('.short')?.value)||0),0).toFixed(2)}</td>
+                  <td style="color:#d7bdf7;font-weight:700;">${rows.reduce((s,r)=>s+(parseFloat(document.getElementById(pid+'-row-'+(r.no-1))?.querySelector('.ret')?.value)||0),0).toFixed(2)}</td>
+                  <td style="color:#5fd3d2;font-weight:800;">${r2(totalOK).toFixed(2)}</td>
+                  <td style="color:#c084fc;font-weight:700;">${r2(totalMend).toFixed(2)}</td>
+                  <td style="color:var(--gold2,#e8c96a);font-weight:700;">${r2(totalFab).toFixed(2)}</td>
+                  <td style="color:#e8c96a;font-weight:800;font-size:13px;">₹${r2(totalFab+totalMend).toFixed(2)}</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ══ SUMMARY STATS + CALC ══ -->
+          <div class="inv-totals-wrap">
+            <div class="inv-summary-stats">
+              <div class="inv-stat-box">
+                <div class="isv" style="color:#0d3a5c;">${rows.length}</div>
+                <div class="isl">Total Entries</div>
+              </div>
+              <div class="inv-stat-box">
+                <div class="isv" style="color:#1a6b4a;">${r2(totalOK).toFixed(2)}<span style="font-size:11px;font-family:Outfit,sans-serif;"> m</span></div>
+                <div class="isl">OK Meters</div>
+              </div>
+              <div class="inv-stat-box">
+                <div class="isv" style="color:#7b3fa0;">₹${r2(totalMend).toFixed(2)}</div>
+                <div class="isl">Mending Total</div>
+              </div>
+            </div>
+            <div class="inv-calc-block">
+              <div class="inv-calc-row">
+                <span class="inv-calc-label">Fabric Amount</span>
+                <span class="inv-calc-val">₹${r2(totalFab).toFixed(2)}</span>
+              </div>
+              <div class="inv-calc-row">
+                <span class="inv-calc-label">Mending Amount</span>
+                <span class="inv-calc-val" style="color:#7b3fa0;">₹${r2(totalMend).toFixed(2)}</span>
+              </div>
+              <div class="inv-calc-row" style="border-bottom:2px solid #c5d5e5;">
+                <span class="inv-calc-label" style="font-weight:700;">Subtotal</span>
+                <span class="inv-calc-val" style="font-size:14px;">₹${r2(subtotal).toFixed(2)}</span>
+              </div>
+              ${usedDiscount > 0 ? `<div class="inv-calc-row">
+                <span class="inv-calc-label" style="color:#2ecc71;">Discount</span>
+                <span class="inv-calc-val" style="color:#2ecc71;">− ₹${r2(usedDiscount).toFixed(2)}</span>
+              </div>` : ''}
+              ${usedTransport > 0 ? `<div class="inv-calc-row">
+                <span class="inv-calc-label" style="color:#3498db;">Transport / Extra</span>
+                <span class="inv-calc-val" style="color:#3498db;">+ ₹${r2(usedTransport).toFixed(2)}</span>
+              </div>` : ''}
+              <div class="inv-calc-row">
+                <span class="inv-calc-label" style="color:#e67e22;">GST @ ${usedGstRate}%</span>
+                <span class="inv-calc-val" style="color:#e67e22;">+ ₹${r2(gst).toFixed(2)}</span>
+              </div>
+              <div class="inv-calc-row" style="background:#f4f8fc;padding:7px 10px;border-radius:6px;border-bottom:none;margin-top:4px;">
+                <span style="font-weight:800;font-size:13px;color:#0d3a5c;">Grand Total</span>
+                <span style="font-weight:800;font-size:15px;color:#0d3a5c;">₹${r2(grand).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══ GRAND TOTAL BOXES ══ -->
+          <div class="inv-grand-block">
+            <div class="inv-grand-grid">
+              <div class="inv-grand-box cumulative">
+                <div>
+                  <div class="inv-grand-label">Cumulative Total</div>
+                  <div style="font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;">All bills included</div>
+                </div>
+                <div class="inv-grand-amount">₹${r2(grand).toFixed(2)}</div>
+              </div>
+              <div class="inv-grand-box previous">
+                <div>
+                  <div class="inv-grand-label">Previously Billed</div>
+                  <div style="font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;">${bs.billHistory.length} prior bill(s)</div>
+                </div>
+                <div class="inv-grand-amount">₹${r2(bs.lastFinalTotal - (isReprint ? 0 : billData.partBill)).toFixed(2)}</div>
+              </div>
+              <div class="inv-grand-box partbill">
+                <div>
+                  <div class="inv-grand-label">⭐ This Part Bill</div>
+                  <div style="font-size:9px;color:#5a4010;margin-top:2px;">Amount due now</div>
+                </div>
+                <div class="inv-grand-amount">₹${r2(billData.partBill).toFixed(2)}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══ AMOUNT IN WORDS ══ -->
+          <div class="inv-words">
+            <span class="inv-words-label">Amount in Words</span>
+            <span class="inv-words-text">${numToWords(r2(billData.partBill))}</span>
+          </div>
+
+          <!-- ══ PAYMENT STATUS ══ -->
+          <div style="display:flex;gap:12px;margin:10px 24px 15px;">
+            <div class="inv-stat-box" style="flex:1;border:2px solid ${paid>0?'#2ecc71':'#e8f0f8'};border-radius:10px;padding:12px 16px;background:${paid>0?'#f0fff6':'#f9fbfd'};">
+              <div class="isv" style="color:${paid>0?'#1a6b4a':'#aaa'};">₹${r2(paid).toFixed(2)}</div>
+              <div class="isl">Paid Amount</div>
+            </div>
+            <div class="inv-stat-box" style="flex:1;border:2px solid ${balance>0?'#e74c3c':'#2ecc71'};border-radius:10px;padding:12px 16px;background:${balance>0?'#fff5f5':'#f0fff6'};">
+              <div class="isv" style="color:${balance>0?'#c0392b':'#1a6b4a'};">₹${r2(balance).toFixed(2)}</div>
+              <div class="isl">${balance>0?'Balance Due':'Fully Paid ✓'}</div>
+            </div>
+            <div class="inv-stat-box" style="flex:1;border:2px solid #e8f0f8;border-radius:10px;padding:12px 16px;background:#f9fbfd;">
+              <div class="isv" style="color:#0d3a5c;">₹${r2(billData.partBill).toFixed(2)}</div>
+              <div class="isl">This Bill Total</div>
+            </div>
+          </div>
+
+          <!-- ══ BANK + UPI + QR ══ -->
+          <div style="display:flex;gap:14px;margin:0 24px 20px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:200px;padding:14px;border:1px dashed #c5d5e5;border-radius:8px;">
+              <div style="font-size:11px;font-weight:700;margin-bottom:6px;color:#0d3a5c;">💰 Payment Details</div>
+              <div style="font-size:10px;color:#6b7c93;line-height:1.9;">
+                Bank: <strong style="color:#2c3e50;">${companyLegal.bank}</strong><br>
+                A/c No: <strong style="color:#2c3e50;">${companyLegal.accNo}</strong><br>
+                IFSC: <strong style="color:#2c3e50;">${companyLegal.ifsc}</strong><br>
+                UPI: <strong style="color:#0e7c7b;">${companyLegal.upi}</strong>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div id="upiQR" style="width:90px;height:90px;" data-upi="upi://pay?pa=${companyLegal.upi}&pn=TexWeavePro&am=${r2(billData.partBill)}&tn=${billData.billNo}"></div>
+              <div style="font-size:8px;color:#8fa0b3;text-align:center;">Scan to Pay<br>₹${r2(billData.partBill).toFixed(2)}</div>
+            </div>
+          </div>
+
+          <!-- ══ TERMS ══ -->
+          <div style="margin:0 24px 20px;padding:12px 16px;background:#fffbf0;border:1px solid #e8c96a33;border-left:3px solid #c9a84c;border-radius:8px;font-size:9px;color:#6b7c93;line-height:1.8;">
+            <strong style="color:#8a6a1a;">Terms & Conditions:</strong><br>
+            1. Payment within 7 days of invoice date &nbsp;|&nbsp; 2. No claim after delivery accepted &nbsp;|&nbsp; 3. Subject to Tamil Nadu jurisdiction &nbsp;|&nbsp; 4. Goods once sold cannot be returned without prior approval &nbsp;|&nbsp; 5. Interest @ 18% p.a. on delayed payments
+          </div>
+
+          <!-- ══ SIGNATURE STRIP ══ -->
+          <div class="inv-sig-strip">
+            <div class="inv-sig-cell">
+              <div class="inv-sig-line"></div>
+              <div class="inv-sig-label">Prepared By</div>
+            </div>
+            <div class="inv-sig-cell">
+              <div class="inv-sig-line"></div>
+              <div class="inv-sig-label">Checked By</div>
+            </div>
+            <div class="inv-sig-cell" style="background:#fffbf0;">
+              <div class="inv-sig-line" style="border-color:#c9a84c;"></div>
+              <div class="inv-sig-label" style="color:#8a6a1a;">Authorised Signatory</div>
+            </div>
+          </div>
+
+          <!-- ══ FOOTER ══ -->
+          <div class="inv-footer">
+            <div class="inv-footer-text">
+              Generated by TexWeave Pro ERP &nbsp;·&nbsp; ${now} &nbsp;·&nbsp; ${billData.billNo}
+              &nbsp;·&nbsp; This is a computer-generated invoice
+            </div>
+            <div class="inv-footer-btns">
+              <button class="inv-btn-print" onclick="printBillDirect()">🖨️ Print Invoice</button>
+              <button class="inv-btn-close" onclick="closePrintBillModal()">✕ Close</button>
+            </div>
+          </div>
+        </div>`;
+
+      document.getElementById('printBillBox').innerHTML = invoiceHTML;
+      document.getElementById('printBillModal').style.display = 'flex';
+      // ── Generate UPI QR Code ──
+      setTimeout(() => {
+        const qrEl = document.getElementById('upiQR');
+        if(qrEl && typeof QRCode !== 'undefined') {
+          qrEl.innerHTML = '';
+          new QRCode(qrEl, {
+            text: `upi://pay?pa=${companyLegal.upi}&pn=TexWeavePro&am=${r2(billData.partBill)}&tn=${billData.billNo}`,
+            width: 90, height: 90,
+            colorDark: '#0d2d4a', colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        }
+      }, 100);
+    }
+
+    // ── Clean print: builds a pure white A4 portrait invoice in a new window ──
+    // ── PRINT: Blob URL approach — zero popup issues, pure white A4 ──
+
+    // ✅ FIX: Print bill invoice directly — uses body.printing-bill class
+    function printBillDirect() {
+      const modal = document.getElementById('printBillModal');
+      const box   = document.getElementById('printBillBox');
+      if (!modal || !box || !box.innerHTML.trim()) {
+        alert('No invoice loaded. Please click Preview Invoice first.');
+        return;
+      }
+      // Ensure modal is visible
+      modal.style.display = 'flex';
+      // Add class so @media print CSS isolates the invoice
+      document.body.classList.add('printing-bill');
+      // Clean up class after print dialog closes
+      function onAfterPrint() {
+        document.body.classList.remove('printing-bill');
+        window.removeEventListener('afterprint', onAfterPrint);
+      }
+      window.addEventListener('afterprint', onAfterPrint);
+      setTimeout(() => window.print(), 150);
+    }
+
+    // ✅ FIX: Close bill modal and clean up class
+    function closePrintBillModal() {
+      document.getElementById('printBillModal').style.display = 'none';
+      document.body.classList.remove('printing-bill');
+    }
+
+    function printInvoiceClean() {
+      var d = window._printData;
+      if (!d) { alert('No invoice data. Please click Preview Invoice first.'); return; }
+
+      function n2(v) { return (parseFloat(v) || 0).toFixed(2); }
+
+      var rows = '';
+      for (var i = 0; i < d.rows.length; i++) {
+        var r = d.rows[i];
+        rows += '<tr style="background:' + (i%2===0?'#fff':'#f9fbfd') + '">';
+        rows += '<td class="tc">' + r.no + '</td>';
+        rows += '<td class="tl fw">' + (r.dc||'-') + '</td>';
+        rows += '<td class="tc sm">' + (r.date||'-') + '</td>';
+        rows += '<td class="tr">' + n2(r.tm) + '</td>';
+        rows += '<td class="tr" style="color:#c0392b">' + n2(r.pl) + '</td>';
+        rows += '<td class="tr" style="color:#e67e22">' + n2(r.sh) + '</td>';
+        rows += '<td class="tr" style="color:#8e44ad">' + n2(r.ret) + '</td>';
+        rows += '<td class="tr fw" style="color:#1a6b4a">' + n2(r.ok) + '</td>';
+        rows += '<td class="tr" style="color:#7b3fa0">&#8377;' + n2(r.men) + '</td>';
+        rows += '<td class="tr">&#8377;' + n2(r.fab) + '</td>';
+        rows += '<td class="tr fw dark">&#8377;' + n2(r.amt) + '</td>';
+        rows += '</tr>';
+      }
+
+      var hist = '';
+      if (d.billHistory && d.billHistory.length > 0) {
+        for (var j = 0; j < d.billHistory.length; j++) {
+          var b = d.billHistory[j];
+          var bal = (b.balance != null) ? b.balance : b.partBill;
+          hist += '<tr>';
+          hist += '<td style="padding:4px 8px;font-weight:700;color:#0d3a5c;font-size:10px;border-bottom:1px solid #eee">' + b.billNo + '</td>';
+          hist += '<td style="padding:4px 8px;color:#666;font-size:10px;border-bottom:1px solid #eee">' + b.date + '</td>';
+          hist += '<td style="padding:4px 8px;text-align:right;font-weight:700;font-size:10px;border-bottom:1px solid #eee">&#8377;' + n2(b.partBill||0) + '</td>';
+          hist += '<td style="padding:4px 8px;text-align:right;color:#27ae60;font-size:10px;border-bottom:1px solid #eee">&#8377;' + n2(b.paid||0) + '</td>';
+          hist += '<td style="padding:4px 8px;text-align:right;font-size:10px;border-bottom:1px solid #eee;color:' + (bal>0?'#e74c3c':'#27ae60') + '">&#8377;' + n2(bal||0) + '</td>';
+          hist += '</tr>';
+        }
+      }
+
+      var discRow  = (d.discount > 0)  ? '<div class="crow"><span class="cl">Discount</span><span style="color:#27ae60">- &#8377;' + n2(d.discount) + '</span></div>' : '';
+      var transRow = (d.transport > 0) ? '<div class="crow"><span class="cl">Transport</span><span style="color:#2980b9">+ &#8377;' + n2(d.transport) + '</span></div>' : '';
+      var histSec  = (hist !== '') ? '<div class="sec"><div class="sec-title">Bill History</div><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#f4f8fc"><th style="padding:5px 8px;text-align:left;font-size:8px;color:#8fa0b3;border-bottom:1px solid #e0e8f0">Bill No</th><th style="padding:5px 8px;text-align:left;font-size:8px;color:#8fa0b3;border-bottom:1px solid #e0e8f0">Date</th><th style="padding:5px 8px;text-align:right;font-size:8px;color:#8fa0b3;border-bottom:1px solid #e0e8f0">Part Bill</th><th style="padding:5px 8px;text-align:right;font-size:8px;color:#8fa0b3;border-bottom:1px solid #e0e8f0">Paid</th><th style="padding:5px 8px;text-align:right;font-size:8px;color:#8fa0b3;border-bottom:1px solid #e0e8f0">Balance</th></tr></thead><tbody>' + hist + '</tbody></table></div>' : '';
+      var btC = (d.billType==='FIRST BILL') ? '#1a6b4a' : (d.billType==='FULL BILL') ? '#0d3a5c' : '#8a6a1a';
+      var btB = (d.billType==='FIRST BILL') ? '#e6f4ec' : (d.billType==='FULL BILL') ? '#e3f0fc' : '#fffbf0';
+
+      var html = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">';
+      html += '<title>Invoice ' + d.billNo + ' - TexWeave Pro</title>';
+      html += '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">';
+      html += '<style>';
+      html += '*{box-sizing:border-box;margin:0;padding:0}';
+      html += 'body{background:#fff;font-family:Outfit,sans-serif;color:#111;padding:0;margin:0}';
+      html += '.wrap{width:100%;max-width:780px;margin:0 auto;background:white}';
+      html += '.no-print{text-align:center;padding:12px;background:#f0f2f5;display:flex;gap:10px;justify-content:center}';
+      html += '.bp{background:#0d2d4a;color:white;border:none;padding:10px 28px;border-radius:7px;font-family:Outfit,sans-serif;font-size:13px;font-weight:700;cursor:pointer}';
+      html += '.bc{background:white;color:#555;border:1px solid #ccc;padding:10px 18px;border-radius:7px;font-family:Outfit,sans-serif;font-size:13px;cursor:pointer}';
+      html += '.hdr{background:#0d2d4a;padding:18px 24px;display:flex;justify-content:space-between;align-items:flex-start}';
+      html += '.logo{display:flex;align-items:center;gap:11px}';
+      html += '.logo-icon{width:42px;height:42px;background:linear-gradient(135deg,#c9a84c,#e8c96a);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}';
+      html += '.logo-name{font-family:"Playfair Display",serif;font-size:21px;font-weight:700;color:white}';
+      html += '.logo-tag{font-size:8.5px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:2px;margin-top:1px}';
+      html += '.legal{font-size:9px;color:rgba(255,255,255,.6);line-height:1.85;margin-top:7px}';
+      html += '.bill-meta{text-align:right}';
+      html += '.bill-lbl{font-size:8px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1.5px}';
+      html += '.bill-no{font-family:"Playfair Display",serif;font-size:24px;font-weight:700;color:#e8c96a;line-height:1.1;margin-top:2px}';
+      html += '.bill-date{font-size:10px;color:rgba(255,255,255,.5);margin-top:3px}';
+      html += '.bill-type{display:inline-block;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;padding:3px 11px;border-radius:20px;margin-top:5px;background:' + btB + ';color:' + btC + '}';
+      html += '.tbar{background:#f7f3e8;border-top:3px solid #c9a84c;padding:6px 24px;display:flex;align-items:center;gap:8px}';
+      html += '.tpill{background:#c9a84c;color:#0d2d4a;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:2px;padding:3px 11px;border-radius:20px}';
+      html += '.ttxt{font-size:9px;color:#8a7040}';
+      html += '.iband{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:2px solid #e8f0f8}';
+      html += '.icell{padding:10px 15px;border-right:1px solid #e8f0f8}';
+      html += '.icell:last-child{border-right:none;background:#fffbf2}';
+      html += '.ilbl{font-size:8px;font-weight:700;color:#8fa0b3;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:3px}';
+      html += '.ival{font-family:"Playfair Display",serif;font-size:13px;font-weight:700;color:#0d2d4a}';
+      html += '.isub{font-size:9px;color:#8fa0b3;margin-top:2px}';
+      html += '.sbar{background:#f7fafd;border-bottom:1px solid #e8f0f8;display:flex}';
+      html += '.sp{flex:1;padding:7px 10px;border-right:1px solid #e8f0f8;text-align:center}';
+      html += '.sp:last-child{border-right:none}';
+      html += '.slbl{font-size:7.5px;color:#8fa0b3;text-transform:uppercase;letter-spacing:.8px}';
+      html += '.sval{font-size:11px;font-weight:700;color:#0d3a5c;margin-top:1px}';
+      html += 'table.dt{width:100%;border-collapse:collapse}';
+      html += 'table.dt thead tr{background:#0d3a5c}';
+      html += 'table.dt thead th{color:white;padding:7px 7px;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;text-align:right}';
+      html += 'table.dt thead th:first-child{text-align:center;padding-left:10px}';
+      html += 'table.dt thead th:nth-child(2){text-align:left}';
+      html += 'table.dt thead th:nth-child(3){text-align:center}';
+      html += 'table.dt tfoot td{background:#0d3a5c;color:white;font-weight:700;padding:6px 7px;text-align:right;font-size:11px}';
+      html += 'table.dt tfoot td:first-child{text-align:center}';
+      html += 'table.dt tfoot td:nth-child(2){text-align:left;font-size:8.5px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.6)}';
+      html += '.tc{text-align:center}.tl{text-align:left}.tr{text-align:right}.fw{font-weight:700}.sm{font-size:10px;color:#777}.dark{color:#0d2d4a}';
+      html += 'table.dt td{padding:5px 7px;border-bottom:1px solid #eef2f7;font-size:11px}';
+      html += '.smry{display:flex;gap:12px;padding:12px 16px;background:#fafcff;border-top:2px solid #e8f0f8}';
+      html += '.sboxes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;flex:1}';
+      html += '.sbox{background:white;border:1px solid #e8f0f8;border-radius:7px;padding:9px 11px;text-align:center}';
+      html += '.sv{font-family:"Playfair Display",serif;font-size:14px;font-weight:700;margin-bottom:2px}';
+      html += '.sl{font-size:7.5px;color:#8fa0b3;text-transform:uppercase;letter-spacing:.7px}';
+      html += '.calc{width:220px;flex-shrink:0}';
+      html += '.crow{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed #e8f0f8;font-size:11px}';
+      html += '.crow:last-child{border-bottom:none}.cl{color:#6b7c93}';
+      html += '.grand{padding:0 16px 11px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}';
+      html += '.gb{border-radius:9px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center}';
+      html += '.gb.c1{background:#0d2d4a;border:2px solid #1a4a6e}';
+      html += '.gb.c2{background:#1a4a2e;border:2px solid #2a7a4a}';
+      html += '.gb.c3{background:linear-gradient(135deg,#8a6a1a,#c9a84c);border:2px solid #e8c96a}';
+      html += '.gl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:white}';
+      html += '.gs{font-size:7.5px;color:rgba(255,255,255,.45);margin-top:1px}';
+      html += '.ga{font-family:"Playfair Display",serif;font-size:16px;font-weight:700;color:white}';
+      html += '.c3 .gl,.c3 .ga,.c3 .gs{color:#0d2d4a}';
+      html += '.words{margin:0 16px 10px;background:#fffbf0;border:1px solid #e8c96a;border-left:4px solid #c9a84c;border-radius:6px;padding:7px 11px;display:flex;align-items:center;gap:8px}';
+      html += '.wl{font-size:7.5px;font-weight:700;color:#8a6a1a;text-transform:uppercase;letter-spacing:1px;white-space:nowrap}';
+      html += '.wt{font-size:10px;font-weight:600;color:#5a4010;font-style:italic}';
+      html += '.pay{display:flex;gap:8px;padding:0 16px 10px}';
+      html += '.pbox{flex:1;border-radius:7px;padding:9px 11px;text-align:center}';
+      html += '.pv{font-family:"Playfair Display",serif;font-size:13px;font-weight:700;margin-bottom:2px}';
+      html += '.pl{font-size:8px;text-transform:uppercase;letter-spacing:.6px}';
+      html += '.bankqr{display:flex;gap:11px;margin:0 16px 10px;align-items:flex-start}';
+      html += '.bank{flex:1;padding:10px 12px;border:1px dashed #c5d5e5;border-radius:7px}';
+      html += '.bt{font-size:10px;font-weight:700;color:#0d3a5c;margin-bottom:5px}';
+      html += '.br{font-size:9px;color:#555;line-height:1.9}';
+      html += '.terms{margin:0 16px 10px;padding:7px 11px;background:#fafafa;border:1px solid #e0e0e0;border-left:3px solid #c9a84c;border-radius:6px;font-size:8.5px;color:#666;line-height:1.8}';
+      html += '.sec{margin:0 16px 11px}.sec-title{font-size:8.5px;font-weight:700;color:#8fa0b3;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}';
+      html += '.sig{display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid #e8f0f8;border-radius:7px;overflow:hidden;margin:0 16px 11px}';
+      html += '.sc{padding:9px 12px;text-align:center;border-right:1px solid #e8f0f8}';
+      html += '.sc:last-child{border-right:none;background:#fffbf0}';
+      html += '.sline{border-top:1.5px solid #c5d5e5;margin-top:22px}';
+      html += '.slbl2{font-size:8px;color:#8fa0b3;text-transform:uppercase;letter-spacing:1px;margin-top:4px}';
+      html += '.sc:last-child .sline{border-color:#c9a84c}.sc:last-child .slbl2{color:#8a6a1a}';
+      html += '.ftr{background:#0d2d4a;padding:9px 16px;display:flex;justify-content:space-between;align-items:center}';
+      html += '.ft{font-size:8.5px;color:rgba(255,255,255,.4);letter-spacing:.4px}';
+      html += '.fn{font-size:8px;color:rgba(255,255,255,.3)}';
+      html += '@media print{';
+      html += '@page{size:A4 portrait;margin:8mm}';
+      html += '*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}';
+      html += 'body{background:white!important;padding:0!important;margin:0!important}';
+      html += '.no-print{display:none!important}';
+      html += '.wrap{max-width:100%!important;width:100%!important}';
+      html += 'table.dt tr{page-break-inside:avoid}';
+      html += '.grand,.words,.sig,.pay{page-break-inside:avoid}';
+      html += '}';
+      html += '</style></head><body>';
+
+      html += '<div class="no-print"><button class="bp" onclick="window.print()">Print Invoice</button><button class="bc" onclick="window.close()">Close</button></div>';
+      html += '<div class="wrap">';
+
+      // HEADER
+      html += '<div class="hdr">';
+      html += '<div><div class="logo"><div class="logo-icon">&#129525;</div><div><div class="logo-name">TexWeave Pro</div><div class="logo-tag">Textile ERP &middot; Production Invoice</div></div></div>';
+      html += '<div class="legal">GSTIN: ' + d.legal.gstin + ' &nbsp;|&nbsp; PAN: ' + d.legal.pan + '<br>State: ' + d.legal.state + ' &nbsp;|&nbsp; Contact: ' + d.legal.contact + '</div></div>';
+      html += '<div class="bill-meta"><div class="bill-lbl">Invoice / Bill No.</div><div class="bill-no">' + d.billNo + '</div><div class="bill-date">&#128197; ' + d.now + '</div><div class="bill-type">' + d.billType + '</div></div>';
+      html += '</div>';
+
+      // TYPE BAR
+      html += '<div class="tbar"><span class="tpill">' + d.billType + '</span><span class="ttxt">Weaving Production Register &middot; GST Invoice &middot; Cumulative Billing</span></div>';
+
+      // INFO BAND
+      html += '<div class="iband">';
+      html += '<div class="icell"><div class="ilbl">Party / Company</div><div class="ival">' + d.cname + '</div><div class="isub">' + d.companyName + ' &middot; Weaving Unit</div></div>';
+      html += '<div class="icell"><div class="ilbl">Design Number</div><div class="ival">' + d.dn + '</div><div class="isub">' + (d.count ? 'Count: ' + d.count : '') + (d.constr ? ' &middot; ' + d.constr : '') + '</div></div>';
+      html += '<div class="icell"><div class="ilbl">Bill Reference</div><div class="ival" style="color:#c9a84c">' + d.billNo + '</div><div class="isub">Prev Bills: ' + d.billHistory.length + ' &middot; Entries: ' + d.rows.length + '</div></div>';
+      html += '</div>';
+
+      // SPECS
+      var specData = [
+        ['Pick Rate', d.specs.pickrate||'&mdash;'],
+        ['Mtrs Rate', d.specs.mtrsrate ? '&#8377;'+d.specs.mtrsrate : '&mdash;'],
+        ['Crumb %',   d.specs.crumb||'&mdash;'],
+        ['Mend Rate', d.specs.mendrate ? '&#8377;'+d.specs.mendrate : '&mdash;'],
+        ['Weaver',    d.specs.weaver||'&mdash;'],
+        ['Last Date', d.specs.lastdate||'&mdash;']
+      ];
+      html += '<div class="sbar">';
+      for (var s = 0; s < specData.length; s++) {
+        html += '<div class="sp' + (s===specData.length-1?'" style="border-right:none"':'"') + '><div class="slbl">' + specData[s][0] + '</div><div class="sval">' + specData[s][1] + '</div></div>';
+      }
+      html += '</div>';
+
+      // TABLE
+      html += '<table class="dt"><thead><tr>';
+      var ths = ['#','DC No.','Date','Total M','Pin Less','Short','Return','OK Meter','Mend &#8377;','Fabric &#8377;','Total &#8377;'];
+      for (var t = 0; t < ths.length; t++) { html += '<th>' + ths[t] + '</th>'; }
+      html += '</tr></thead><tbody>' + rows + '</tbody><tfoot><tr>';
+      html += '<td></td><td>TOTALS</td><td></td>';
+      html += '<td>' + n2(d.totals.tm) + '</td>';
+      html += '<td style="color:#ff9f8e">' + n2(d.totals.pl) + '</td>';
+      html += '<td style="color:#f0a070">' + n2(d.totals.sh) + '</td>';
+      html += '<td style="color:#d7bdf7">' + n2(d.totals.ret) + '</td>';
+      html += '<td style="color:#5fd3d2">' + n2(d.totals.ok) + '</td>';
+      html += '<td style="color:#c084fc">&#8377;' + n2(d.totals.men) + '</td>';
+      html += '<td style="color:#e8c96a">&#8377;' + n2(d.totals.fab) + '</td>';
+      html += '<td style="color:#e8c96a;font-size:13px">&#8377;' + n2(d.totals.amt) + '</td>';
+      html += '</tr></tfoot></table>';
+
+      // SUMMARY + CALC
+      html += '<div class="smry">';
+      html += '<div class="sboxes">';
+      html += '<div class="sbox"><div class="sv" style="color:#0d3a5c">' + d.rows.length + '</div><div class="sl">Total Entries</div></div>';
+      html += '<div class="sbox"><div class="sv" style="color:#1a6b4a">' + n2(d.totals.ok) + ' m</div><div class="sl">OK Meters</div></div>';
+      html += '<div class="sbox"><div class="sv" style="color:#7b3fa0">&#8377;' + n2(d.totals.men) + '</div><div class="sl">Mending</div></div>';
+      html += '</div>';
+      html += '<div class="calc">';
+      html += '<div class="crow"><span class="cl">Fabric Amount</span><span style="font-weight:600">&#8377;' + n2(d.totals.fab) + '</span></div>';
+      html += '<div class="crow"><span class="cl">Mending Amount</span><span style="font-weight:600;color:#7b3fa0">&#8377;' + n2(d.totals.men) + '</span></div>';
+      html += '<div class="crow" style="border-bottom:2px solid #c5d5e5"><span style="font-weight:700">Subtotal</span><span style="font-weight:700;font-size:13px">&#8377;' + n2(d.subtotal) + '</span></div>';
+      html += discRow + transRow;
+      html += '<div class="crow"><span class="cl" style="color:#e67e22">GST @ ' + d.gstRate + '%</span><span style="color:#e67e22;font-weight:600">+ &#8377;' + n2(d.gst) + '</span></div>';
+      html += '<div style="display:flex;justify-content:space-between;background:#f4f8fc;padding:6px 8px;border-radius:5px;margin-top:3px"><span style="font-weight:800;font-size:12px;color:#0d3a5c">Grand Total</span><span style="font-weight:800;font-size:14px;color:#0d3a5c">&#8377;' + n2(d.grand) + '</span></div>';
+      html += '</div></div>';
+
+      // GRAND BOXES
+      html += '<div class="grand">';
+      html += '<div class="gb c1"><div><div class="gl">Cumulative Total</div><div class="gs">All bills</div></div><div class="ga">&#8377;' + n2(d.grand) + '</div></div>';
+      html += '<div class="gb c2"><div><div class="gl">Previously Billed</div><div class="gs">' + d.billHistory.length + ' bill(s)</div></div><div class="ga">&#8377;' + n2(d.prevBilled) + '</div></div>';
+      html += '<div class="gb c3"><div><div class="gl">This Part Bill</div><div class="gs">Amount due now</div></div><div class="ga">&#8377;' + n2(d.partBill) + '</div></div>';
+      html += '</div>';
+
+      // WORDS
+      html += '<div class="words"><span class="wl">Amount in Words</span><span class="wt">' + d.amtWords + '</span></div>';
+
+      // PAYMENT STATUS
+      var paidColor  = d.paid > 0 ? '#1a6b4a' : '#aaa';
+      var paidBorder = d.paid > 0 ? '#2ecc71' : '#ddd';
+      var paidBg     = d.paid > 0 ? '#f0fff6' : '#fafafa';
+      var balColor   = d.balance > 0 ? '#c0392b' : '#1a6b4a';
+      var balBorder  = d.balance > 0 ? '#e74c3c' : '#2ecc71';
+      var balBg      = d.balance > 0 ? '#fff5f5' : '#f0fff6';
+      html += '<div class="pay">';
+      html += '<div class="pbox" style="border:2px solid ' + paidBorder + ';background:' + paidBg + '"><div class="pv" style="color:' + paidColor + '">&#8377;' + n2(d.paid) + '</div><div class="pl" style="color:' + paidColor + '">Paid Amount</div></div>';
+      html += '<div class="pbox" style="border:2px solid ' + balBorder + ';background:' + balBg + '"><div class="pv" style="color:' + balColor + '">&#8377;' + n2(d.balance) + '</div><div class="pl" style="color:' + balColor + '">' + (d.balance > 0 ? 'Balance Due' : 'Fully Paid') + '</div></div>';
+      html += '<div class="pbox" style="border:2px solid #e8f0f8;background:#f9fbfd"><div class="pv" style="color:#0d3a5c">&#8377;' + n2(d.partBill) + '</div><div class="pl" style="color:#0d3a5c">This Bill</div></div>';
+      html += '</div>';
+
+      // BANK + QR placeholder
+      html += '<div class="bankqr"><div class="bank"><div class="bt">Payment Details</div><div class="br">Bank: <strong>' + d.legal.bank + '</strong><br>A/c: <strong>' + d.legal.accNo + '</strong><br>IFSC: <strong>' + d.legal.ifsc + '</strong><br>UPI: <strong style="color:#0e7c7b">' + d.legal.upi + '</strong></div></div>';
+      html += '<div style="text-align:center"><div id="qrdiv" style="width:80px;height:80px;border:1px solid #e0e8f0;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8px;color:#aaa">QR Code</div><div style="font-size:8px;color:#888;margin-top:3px">Scan to Pay &#8377;' + n2(d.partBill) + '</div></div></div>';
+
+      // TERMS
+      html += '<div class="terms"><strong style="color:#5a4010">Terms &amp; Conditions:</strong> 1. Payment within 7 days | 2. No claim after delivery | 3. Subject to Tamil Nadu jurisdiction | 4. Goods not returnable without approval | 5. Interest @ 18% p.a. on delayed payments</div>';
+
+      // BILL HISTORY
+      html += histSec;
+
+      // SIGNATURE
+      html += '<div class="sig"><div class="sc"><div class="sline"></div><div class="slbl2">Prepared By</div></div><div class="sc"><div class="sline"></div><div class="slbl2">Checked By</div></div><div class="sc"><div class="sline"></div><div class="slbl2">Authorised Signatory</div></div></div>';
+
+      // FOOTER
+      html += '<div class="ftr"><div class="ft">Generated by TexWeave Pro ERP &middot; ' + d.now + ' &middot; ' + d.billNo + '</div><div class="fn">This is a computer-generated invoice</div></div>';
+
+      html += '</div>';  // /wrap
+      html += '<scr' + 'ipt src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></scr' + 'ipt>';
+      html += '<scr' + 'ipt>setTimeout(function(){var el=document.getElementById("qrdiv");if(el&&typeof QRCode!=="undefined"){el.innerHTML="";try{new QRCode(el,{text:"upi://pay?pa=' + d.legal.upi + '&pn=TexWeavePro&am=' + n2(d.partBill) + '&tn=' + d.billNo + '",width:80,height:80,colorDark:"#0d2d4a",colorLight:"#ffffff"});}catch(e){}}},500);</scr' + 'ipt>';
+      html += '</body></html>';
+
+      // Use Blob URL — most reliable, avoids all popup/document.write issues
+      var blob = new Blob([html], {type: 'text/html;charset=utf-8'});
+      var url  = URL.createObjectURL(blob);
+      var a    = document.createElement('a');
+      a.href   = url;
+      a.target = '_blank';
+      a.rel    = 'noopener';
+      a.click();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+    }
+
+    // Extend saveAll to include billState
+    const _origSaveAll = saveAll;
+    // Override saveAll to also persist billState + auditLog
+    const _saveAllOrig = saveAll;
+    window.addEventListener('load', () => {
+      const origSave = saveAll;
+      window.saveAll = function() {
+        origSave.call(this);
+        try {
+          const stored = JSON.parse(localStorage.getItem('texweave_v5')||'{}');
+          stored.billState = billState;
+          stored.auditLog  = auditLog;
+          localStorage.setItem('texweave_v5', JSON.stringify(stored));
+        } catch(e) {}
+      };
+
+      // ── AUTO BACKUP every 30 seconds ──
+      setInterval(() => {
+        try {
+          window.saveAll();
+          // Update backup timestamp in sidebar
+          const el = document.getElementById('autoBackupTime');
+          if(el) el.textContent = 'Last saved: ' + new Date().toLocaleTimeString('en-IN');
+        } catch(e) {}
+      }, 30000);
+    });
+
+    // Load billState + auditLog on init
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        try {
+          const data = JSON.parse(localStorage.getItem('texweave_v5')||'{}');
+          if(data.billState) billState = data.billState;
+          if(data.auditLog)  auditLog  = data.auditLog;
+        } catch(e) {}
+      }, 200);
+    });
+
+    // ══ DATA VALIDATION ══
+    function validateDCEntry(pid, idx) {
+      const row   = document.getElementById(`${pid}-row-${idx}`);
+      if(!row) return true;
+      const dc    = row.querySelector('.dcno')?.value?.trim();
+      const tm    = parseFloat(row.querySelector('.tm')?.value)||0;
+      const pl    = parseFloat(row.querySelector('.pl')?.value)||0;
+      const sh    = parseFloat(row.querySelector('.short')?.value)||0;
+      const errors = [];
+      if(!dc)         errors.push('DC No. is empty');
+      if(tm <= 0)     errors.push('Total Meters must be > 0');
+      if(pl < 0)      errors.push('Pin Less cannot be negative');
+      if(sh < 0)      errors.push('Short cannot be negative');
+      if(pl + sh > tm) errors.push('Pin Less + Short exceeds Total Meters');
+      // Duplicate DC check
+      const allDCs = [...document.querySelectorAll(`#${pid}-tbody tr .dcno`)]
+        .map(i=>i.value.trim()).filter(v=>v&&v===dc);
+      if(allDCs.length > 1) errors.push(`DC No. "${dc}" is duplicate`);
+      if(errors.length) {
+        flashToast('⚠️ Validation: ' + errors[0]);
+        return false;
+      }
+      return true;
+    }
+
+    // ══ JSON BACKUP EXPORT ══
+    function exportJSONBackup() {
+      try {
+        const data = JSON.parse(localStorage.getItem('texweave_v5')||'{}');
+        data.billState = billState;
+        data.auditLog  = auditLog;
+        data.exportedAt = new Date().toISOString();
+        data.version = 'TexWeave Pro v7';
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url;
+        a.download = `TexWeave_Backup_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        setTimeout(()=>URL.revokeObjectURL(url), 1000);
+        flashToast('✅ JSON Backup downloaded successfully');
+        auditLog.push({action:'BACKUP_EXPORTED', date: new Date().toISOString(), user:'admin'});
+      } catch(e) { flashToast('❌ Backup failed: '+e.message); }
+    }
+
+    // ══ JSON RESTORE ══
+    function importJSONBackup() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const data = JSON.parse(ev.target.result);
+            if(!confirm(`Restore backup from ${data.exportedAt||'unknown date'}?\nThis will OVERWRITE all current data.`)) return;
+            localStorage.setItem('texweave_v5', JSON.stringify(data));
+            flashToast('✅ Backup restored — reloading...');
+            setTimeout(()=>location.reload(), 1200);
+          } catch(err) { flashToast('❌ Invalid backup file'); }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+
+    // ══ AUDIT LOG VIEWER ══
+    function openAuditLog() {
+      const modal = document.getElementById('auditLogModal');
+      const body  = document.getElementById('auditLogBody');
+      if(!modal || !body) return;
+      const rows = [...auditLog].reverse().slice(0,50);
+      body.innerHTML = rows.length ? rows.map(e => {
+        const icon = {BILL_CREATED:'💳',PAYMENT_RECEIVED:'💰',BACKUP_EXPORTED:'📦',BILL_MODIFIED:'✏️'}[e.action]||'📋';
+        const color= {BILL_CREATED:'#5fd3d2',PAYMENT_RECEIVED:'#2ecc71',BACKUP_EXPORTED:'#e8c96a',BILL_MODIFIED:'#c084fc'}[e.action]||'white';
+        return `<tr>
+          <td style="color:${color};font-weight:700;">${icon} ${e.action}</td>
+          <td style="color:#5fd3d2;">${e.billNo||'—'}</td>
+          <td style="color:rgba(255,255,255,.5);font-size:10px;">${e.co||'—'} · ${e.dn||'—'}</td>
+          <td style="color:var(--gold2);">${e.amount?'₹'+r2(e.amount).toFixed(2):(e.partBill?'₹'+r2(e.partBill).toFixed(2):'—')}</td>
+          <td style="color:rgba(255,255,255,.35);font-size:10px;">${new Date(e.date).toLocaleString('en-IN')}</td>
+        </tr>`;
+      }).join('') : '<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,.25);padding:24px;">No audit entries yet</td></tr>';
+      modal.style.display = 'flex';
+    }
+
+    // ══ ANALYTICS DASHBOARD ══
+    function openAnalytics() {
+      const modal = document.getElementById('analyticsModal');
+      const body  = document.getElementById('analyticsBody');
+      if(!modal || !body) return;
+
+      // Aggregate data
+      let totalMeters=0, totalOK=0, totalAmt=0, totalEntries=0;
+      const weaverMap={}, defectData=[];
+      getCompanyIds().forEach(co=>{
+        (companyDesigns[co]||[]).forEach(dn=>{
+          const pid=pageId(co,dn);
+          document.querySelectorAll(`#${pid}-tbody tr`).forEach(r=>{
+            const tm  = parseFloat(r.querySelector('.tm')?.value)||0;
+            const ok  = parseFloat(r.querySelector('.ok')?.textContent)||0;
+            const amt = parseFloat(r.querySelector('.amt')?.textContent)||0;
+            const weaver = document.getElementById(pid+'-weaver')?.value||'Unknown';
+            const pl  = parseFloat(r.querySelector('.pl')?.value)||0;
+            const sh  = parseFloat(r.querySelector('.short')?.value)||0;
+            const defect = r2((pl+sh)/Math.max(tm,1)*100);
+            totalMeters+=tm; totalOK+=ok; totalAmt+=amt; totalEntries++;
+            if(!weaverMap[weaver]) weaverMap[weaver]={meters:0,amt:0,entries:0};
+            weaverMap[weaver].meters+=tm; weaverMap[weaver].amt+=amt; weaverMap[weaver].entries++;
+            if(tm>0) defectData.push(defect);
+          });
+        });
+      });
+
+      // Bill collection stats
+      let totalBilled=0, totalPaid=0, totalBalance=0;
+      Object.values(billState).forEach(coBills=>{
+        Object.values(coBills).forEach(bs=>{
+          bs.billHistory.forEach(b=>{
+            totalBilled += b.partBill||0;
+            totalPaid   += b.paid||0;
+            totalBalance+= b.balance||b.partBill||0;
+          });
+        });
+      });
+
+      const avgRate   = totalOK > 0 ? r2(totalAmt/totalOK) : 0;
+      const defectPct = defectData.length ? r2(defectData.reduce((s,v)=>s+v,0)/defectData.length) : 0;
+      const weavers   = Object.entries(weaverMap).sort((a,b)=>b[1].meters-a[1].meters).slice(0,5);
+
+      body.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+          <div style="background:rgba(14,124,123,.2);border:1px solid rgba(14,124,123,.4);border-radius:10px;padding:14px;">
+            <div style="font-size:22px;font-weight:700;font-family:'Playfair Display',serif;">${r2(totalMeters).toFixed(1)}</div>
+            <div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;margin-top:2px;">Total Meters</div>
+          </div>
+          <div style="background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.4);border-radius:10px;padding:14px;">
+            <div style="font-size:22px;font-weight:700;font-family:'Playfair Display',serif;color:var(--gold2);">₹${r2(totalAmt).toFixed(0)}</div>
+            <div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;margin-top:2px;">Total Amount</div>
+          </div>
+          <div style="background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.3);border-radius:10px;padding:14px;">
+            <div style="font-size:22px;font-weight:700;font-family:'Playfair Display',serif;color:#2ecc8e;">₹${avgRate}/m</div>
+            <div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;margin-top:2px;">Avg Rate / Meter</div>
+          </div>
+          <div style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:10px;padding:14px;">
+            <div style="font-size:22px;font-weight:700;font-family:'Playfair Display',serif;color:#e74c3c;">${defectPct}%</div>
+            <div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;margin-top:2px;">Avg Defect %</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
+          <!-- Bill Collection -->
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;">
+            <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">💳 Bill Collection</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;justify-content:space-between;font-size:12px;">
+                <span style="color:rgba(255,255,255,.5);">Total Billed</span>
+                <span style="color:var(--gold2);font-weight:700;">₹${r2(totalBilled).toFixed(2)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;">
+                <span style="color:rgba(255,255,255,.5);">Collected</span>
+                <span style="color:#2ecc71;font-weight:700;">₹${r2(totalPaid).toFixed(2)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;">
+                <span style="color:rgba(255,255,255,.5);">Pending</span>
+                <span style="color:#e74c3c;font-weight:700;">₹${r2(totalBalance).toFixed(2)}</span>
+              </div>
+              <div style="background:rgba(255,255,255,.08);border-radius:6px;height:8px;margin-top:6px;overflow:hidden;">
+                <div style="background:linear-gradient(90deg,#2ecc71,#1a6b4a);height:100%;width:${totalBilled>0?Math.min(100,r2(totalPaid/totalBilled*100)):0}%;border-radius:6px;"></div>
+              </div>
+              <div style="font-size:9px;color:rgba(255,255,255,.3);text-align:right;">${totalBilled>0?r2(totalPaid/totalBilled*100):0}% collected</div>
+            </div>
+          </div>
+          <!-- Weaver Performance -->
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;">
+            <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">👷 Weaver Performance</div>
+            ${weavers.length ? weavers.map(([w,d],i)=>`
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <div style="font-size:10px;color:rgba(255,255,255,.4);width:14px;">${i+1}</div>
+                <div style="flex:1;font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${w}</div>
+                <div style="font-size:11px;color:var(--gold2);font-weight:700;">${r2(d.meters).toFixed(1)}m</div>
+              </div>`).join('')
+            : '<div style="color:rgba(255,255,255,.25);font-size:12px;">No weaver data yet</div>'}
+          </div>
+        </div>
+
+        <div style="font-size:10px;color:rgba(255,255,255,.3);text-align:center;">
+          ${totalEntries} total entries across ${Object.values(companyDesigns).reduce((s,a)=>s+a.length,0)} design registers &nbsp;|&nbsp; OK Meter: ${r2(totalOK).toFixed(2)} m
+        </div>`;
+      modal.style.display = 'flex';
+    }
+  </script>
+
+
+  <!-- ══ AUDIT LOG MODAL ══ -->
+  <div class="modal" id="auditLogModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="modalBox" style="max-width:780px;max-height:85vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <h3 style="font-family:'Playfair Display',serif;font-size:18px;">📋 Audit Log</h3>
+        <button onclick="document.getElementById('auditLogModal').style.display='none'" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;line-height:1;">✕</button>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;">
+        <thead><tr style="border-bottom:1px solid rgba(255,255,255,.1);">
+          <th style="text-align:left;padding:8px 10px;color:rgba(255,255,255,.4);font-size:9px;text-transform:uppercase;letter-spacing:1px;">Action</th>
+          <th style="text-align:left;padding:8px 10px;color:rgba(255,255,255,.4);font-size:9px;text-transform:uppercase;letter-spacing:1px;">Bill No</th>
+          <th style="text-align:left;padding:8px 10px;color:rgba(255,255,255,.4);font-size:9px;text-transform:uppercase;letter-spacing:1px;">Company · Design</th>
+          <th style="text-align:left;padding:8px 10px;color:rgba(255,255,255,.4);font-size:9px;text-transform:uppercase;letter-spacing:1px;">Amount</th>
+          <th style="text-align:left;padding:8px 10px;color:rgba(255,255,255,.4);font-size:9px;text-transform:uppercase;letter-spacing:1px;">Timestamp</th>
+        </tr></thead>
+        <tbody id="auditLogBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ ANALYTICS MODAL ══ -->
+  <div class="modal" id="analyticsModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="modalBox" style="max-width:680px;max-height:85vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <h3 style="font-family:'Playfair Display',serif;font-size:18px;">📊 Production Analytics</h3>
+        <button onclick="document.getElementById('analyticsModal').style.display='none'" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;line-height:1;">✕</button>
+      </div>
+      <div id="analyticsBody"></div>
+    </div>
+  </div>
+
+  <script>
+    // ── Swipe-to-close sidebar on mobile ──
+    (function() {
+      let startX = 0, startY = 0;
+      const sidebar = document.getElementById('sidebar');
+      document.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      }, { passive: true });
+      document.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - startX;
+        const dy = Math.abs(e.changedTouches[0].clientY - startY);
+        if (dx < -60 && dy < 50 && sidebar.classList.contains('open')) closeSidebar();
+        if (dx > 60 && dy < 50 && startX < 40 && !sidebar.classList.contains('open')) openSidebar();
+      }, { passive: true });
+    })();
+    document.querySelector('.tblWrap')?.addEventListener('touchstart', () => {}, { passive: true });
+  </script>
+
 </body>
 </html>
