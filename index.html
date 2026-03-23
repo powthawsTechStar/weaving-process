@@ -2791,9 +2791,9 @@
     .printBillBox {
       background: white;
       color: #111;
-      width: 680px;
-      max-width: 95vw;
-      max-height: 90vh;
+      width: 960px;
+      max-width: 97vw;
+      max-height: 92vh;
       overflow-y: auto;
       border-radius: 12px;
       box-shadow: 0 30px 80px rgba(0,0,0,.6);
@@ -4023,7 +4023,7 @@
             <div class="iField"><label>Pick Rate</label><input id="${pid}-pickrate" placeholder="0.25" type="number" step="0.01"></div>
             <div class="iField"><label>Mtrs Rate (₹)</label><input id="${pid}-mtrsrate" placeholder="16.25" type="number" step="0.01" oninput="applyMtrsRate('${pid}')"></div>
             <div class="iField"><label>Crumb %</label><input id="${pid}-crumb" placeholder="4" type="number" step="0.01"></div>
-            <div class="iField"><label>Mend Rate ₹/hr</label><input id="${pid}-mendrate" placeholder="50" type="number" step="0.01" oninput="recalcAllRows('${pid}')"></div>
+            <div class="iField"><label>Mend Rate (Divisor)</label><input id="${pid}-mendrate" placeholder="100" type="number" step="0.01" oninput="recalcAllRows('${pid}')" title="Mending formula: (Inches ÷ Rate) × 100"></div>
             <div class="iField"><label>Last Date</label><input id="${pid}-lastdate" type="date"></div>
           </div>
           <div class="filterBar">
@@ -4178,12 +4178,12 @@
       const sh   = parseFloat(row.querySelector('.short')?.value)||0;
       const ret  = parseFloat(row.querySelector('.ret')?.value)||0;
       const mendY= parseFloat(row.querySelector('.mendY')?.value)||0;
-      // Mending: Y inches / 38 = hours; hours * mendRate
+      // NEW MENDING FORMULA: (Inches ÷ Rate) × 100
       const pidParts = pid.split('__');
       const co = pidParts[0];
       const mendRate = parseFloat(document.getElementById(pid+'-mendrate')?.value)||0;
-      const mendHrs  = r2(mendY / 38);
-      const mendAmt  = r2(mendHrs * mendRate);
+      // ✅ NEW FORMULA: Mend Amount = (Inches ÷ Rate) × 100
+      const mendAmt  = mendRate > 0 ? r2((mendY / mendRate) * 100) : 0;
       if(row.querySelector('.mendAmt')) row.querySelector('.mendAmt').textContent = mendAmt.toFixed(2);
       // OK = Total - PinLess - Shortage - Return
       const ok  = r2(tm - pl - sh - ret);
@@ -4938,6 +4938,57 @@
       if(!billState[co][dk]) billState[co][dk] = { lastFinalTotal: 0, billHistory: [], billCounter: 0 };
     }
 
+
+
+    // ✅ Build bill history HTML — clean string concat, no nested escaping
+    function buildBillHistoryHTML(bs, co, dn) {
+      if (!bs.billHistory || !bs.billHistory.length) return '';
+      var rows = '';
+      var safeDN = dn.replace(/'/g, '&#39;');
+      bs.billHistory.forEach(function(b) {
+        var isCN     = !!b.isCreditNote;
+        var billAmt  = isCN ? '-&#8377;' + Math.abs(r2(b.partBill)).toFixed(2) : '&#8377;' + r2(b.partBill).toFixed(2);
+        var paidAmt  = isCN ? '&mdash;'  : '&#8377;' + r2(b.paid||0).toFixed(2);
+        var bal      = b.balance != null ? b.balance : b.partBill;
+        var balAmt   = isCN ? '(-&#8377;' + Math.abs(r2(bal)).toFixed(2) + ')' : '&#8377;' + r2(Math.abs(bal)).toFixed(2);
+        var billClr  = isCN ? '#ff9f8e' : '#5fd3d2';
+        var amtClr   = isCN ? '#ff9f8e' : 'var(--gold2)';
+        var balClr   = isCN ? '#ff9f8e' : (bal > 0 ? '#e74c3c' : '#2ecc8e');
+        var rowBg    = isCN ? 'style="background:rgba(231,76,60,.06)"' : '';
+        var badge    = isCN ? '<span style="font-size:9px;background:rgba(231,76,60,.2);color:#ff9f8e;padding:1px 5px;border-radius:4px;margin-left:4px">CREDIT</span>' : '';
+        var safeBN   = b.billNo;
+        var actionBtns;
+        if (isCN) {
+          actionBtns = '<span style="font-size:10px;color:rgba(255,255,255,.3)">Credit Note</span>';
+        } else {
+          actionBtns  = '<button onclick="reprintBill(\'' + co + '\',\'' + safeDN + '\',\'' + safeBN + '\')" ';
+          actionBtns += 'style="background:rgba(14,124,123,.2);border:1px solid rgba(14,124,123,.3);color:#5fd3d2;padding:3px 9px;border-radius:5px;font-size:10px;cursor:pointer;font-family:Outfit,sans-serif">&#128424; Reprint</button>';
+          actionBtns += '<button onclick="markPaidModal(\'' + co + '\',\'' + safeDN + '\',\'' + safeBN + '\')" ';
+          actionBtns += 'style="background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.3);color:#2ecc8e;padding:3px 9px;border-radius:5px;font-size:10px;cursor:pointer;font-family:Outfit,sans-serif;margin-left:3px">&#128176; Pay</button>';
+        }
+        rows += '<tr ' + rowBg + '>'
+          + '<td style="color:' + billClr + ';font-weight:700">' + (isCN ? '&#128203; ' : '') + b.billNo + badge + '</td>'
+          + '<td style="color:rgba(255,255,255,.5)">' + b.date + '</td>'
+          + '<td style="color:' + amtClr + ';font-weight:700">' + billAmt + '</td>'
+          + '<td style="color:#2ecc8e">' + paidAmt + '</td>'
+          + '<td style="color:' + balClr + '">' + balAmt + '</td>'
+          + '<td>' + actionBtns + '</td>'
+          + '</tr>';
+      });
+      return '<div style="margin-top:18px">'
+        + '<div style="font-size:10px;color:rgba(255,255,255,.35);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">&#128203; Bill History</div>'
+        + '<table class="billHistTable">'
+        + '<thead><tr><th>Bill No</th><th>Date</th><th>Part Bill &#8377;</th><th>Paid &#8377;</th><th>Balance &#8377;</th><th></th></tr></thead>'
+        + '<tbody>' + rows + '</tbody>'
+        + '</table></div>';
+    }
+
+
+    // ✅ Wrapper to avoid string escaping issues in template literals
+    function reprintBill(co, dn, billNo) {
+      printBillInvoice(co, dn, 0, 0, '0', true, billNo);
+    }
+
     function openBillingModal(co, dn) {
       const dk  = dKey(dn);
       const pid = pageId(co, dn);
@@ -4977,12 +5028,19 @@
       const fabricAmt  = r2(totalFabric);
       const gst        = r2((totalAmt - discount) * (gstRate/100));
       const finalTotal = r2(totalAmt - discount + transport + packing + gst);
-      const partBill   = r2(finalTotal - bs.lastFinalTotal);
-      const billNo     = `PB${String(bs.billCounter + 1).padStart(3,'0')}`;
+      // ✅ FIX: Correct part bill = current cumulative − previously billed
+      const rawPartBill  = r2(finalTotal - bs.lastFinalTotal);
+      const isCredit     = rawPartBill < 0;         // overbilled: current < previous
+      const isSameAmt    = rawPartBill === 0;
+      const partBill     = isCredit ? 0 : rawPartBill;   // never allow negative bill
+      const adjustment   = isCredit ? rawPartBill : 0;   // negative = credit amount
+      const billNo       = `PB${String(bs.billCounter + 1).padStart(3,'0')}`;
 
       // Detect bill type
-      const billType = bs.billHistory.length === 0 ? 'FIRST BILL' :
-                       (partBill === finalTotal ? 'FULL BILL' : 'PART BILL');
+      const billType = isCredit ? 'CREDIT NOTE' :
+                       isSameAmt ? 'NO CHANGE' :
+                       bs.billHistory.length === 0 ? 'FIRST BILL' :
+                       (rawPartBill === finalTotal ? 'FULL BILL' : 'PART BILL');
 
       const content = document.getElementById('billingModalContent');
       content.innerHTML = `
@@ -5037,6 +5095,50 @@
               <div class="billTotalBox"><label>Previous Billed</label><span style="color:rgba(255,255,255,.5);">₹${r2(bs.lastFinalTotal).toFixed(2)}</span></div>
             </div>
           </div>
+          ${isCredit ? `
+          <!-- ⚠️ CREDIT NOTE: current total < previously billed -->
+          <div style="background:rgba(231,76,60,.12);border:2px solid rgba(231,76,60,.5);border-radius:10px;padding:14px 18px;margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+              <div style="flex:1;">
+                <div style="font-size:11px;color:#ff9f8e;font-weight:700;margin-bottom:4px;">⚠️ OVERBILLING — CREDIT NOTE REQUIRED</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px;line-height:1.6;">
+                  Current total (₹${r2(finalTotal).toFixed(2)}) is <strong style="color:#ff6b6b;">less</strong> than
+                  previously billed (₹${r2(bs.lastFinalTotal).toFixed(2)}).
+                  No new bill can be raised. Issue a credit note for the difference.
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                  <div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px 16px;text-align:center;">
+                    <div style="font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Current Total</div>
+                    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:white;">₹${r2(finalTotal).toFixed(2)}</div>
+                  </div>
+                  <div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px 16px;text-align:center;">
+                    <div style="font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Previously Billed</div>
+                    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:rgba(255,255,255,.5);">₹${r2(bs.lastFinalTotal).toFixed(2)}</div>
+                  </div>
+                  <div style="background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.4);border-radius:8px;padding:10px 16px;text-align:center;">
+                    <div style="font-size:9px;color:#ff9f8e;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Adjustment (Credit)</div>
+                    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#ff6b6b;">₹${Math.abs(r2(adjustment)).toFixed(2)}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button onclick="issueCreditNote(window._cnCo, window._cnDn, window._cnAdj)" style="background:rgba(231,76,60,.3);color:#ff9f8e;border:1px solid rgba(231,76,60,.5);padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;">📋 Issue Credit Note</button>
+            <button onclick="closeBillingModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);padding:9px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">Cancel</button>
+          </div>
+          ` : isSameAmt ? `
+          <!-- ℹ️ NO CHANGE: current = previously billed -->
+          <div style="background:rgba(52,152,219,.1);border:2px solid rgba(52,152,219,.4);border-radius:10px;padding:14px 18px;margin-bottom:14px;">
+            <div style="font-size:11px;color:#5dade2;font-weight:700;margin-bottom:4px;">ℹ️ NO CHANGE — Already fully billed</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.5);">Current total matches previously billed amount. No new bill needed.</div>
+            <div style="margin-top:8px;font-size:22px;font-weight:700;color:rgba(255,255,255,.3);">₹0.00</div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button onclick="closeBillingModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);padding:9px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">Close</button>
+          </div>
+          ` : `
+          <!-- ✅ NORMAL BILLING -->
           <div style="background:rgba(201,168,76,.12);border:2px solid rgba(201,168,76,.5);border-radius:10px;padding:14px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
             <div>
               <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:3px;">PART BILL AMOUNT (Cumulative − Previous)</div>
@@ -5053,29 +5155,13 @@
             <button class="btnPartBill"   onclick="printBillInvoiceFromModal('${co}','${dn}','${billNo}',false)">🖨️ Preview Invoice</button>
             <button onclick="closeBillingModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);padding:9px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">Cancel</button>
           </div>
+          `}
         </div>
-        ${bs.billHistory.length ? `
-        <div style="margin-top:18px;">
-          <div style="font-size:10px;color:rgba(255,255,255,.35);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">📋 Bill History</div>
-          <table class="billHistTable">
-            <thead><tr><th>Bill No</th><th>Date</th><th>Part Bill ₹</th><th>Paid ₹</th><th>Balance ₹</th><th></th></tr></thead>
-            <tbody>
-              ${bs.billHistory.map(b=>`
-                <tr>
-                  <td style="color:#5fd3d2;font-weight:700;">${b.billNo}</td>
-                  <td style="color:rgba(255,255,255,.5);">${b.date}</td>
-                  <td style="color:var(--gold2);font-weight:700;">₹${r2(b.partBill).toFixed(2)}</td>
-                  <td style="color:#2ecc8e;">₹${r2(b.paid||0).toFixed(2)}</td>
-                  <td style="color:${(b.balance||b.partBill)>0?'#e74c3c':'#2ecc8e'};">₹${r2(b.balance||b.partBill).toFixed(2)}</td>
-                  <td><button onclick="printBillInvoice('${co}','${dn.replace(/'/g,"\'")}',${0},${0},'${0}',true,'${b.billNo}')" style="background:rgba(14,124,123,.2);border:1px solid rgba(14,124,123,.3);color:#5fd3d2;padding:3px 9px;border-radius:5px;font-size:10px;cursor:pointer;font-family:'Outfit',sans-serif;">🖨️ Reprint</button>
-                  <button onclick="markPaidModal('${co}','${dn}','${b.billNo}')" style="background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.3);color:#2ecc8e;padding:3px 9px;border-radius:5px;font-size:10px;cursor:pointer;font-family:'Outfit',sans-serif;margin-left:3px;">💰 Pay</button></td>
-                </tr>`).join('')}
-            </tbody>
-          </table>
-        </div>` : ''}
+        ${bs.billHistory.length ? buildBillHistoryHTML(bs, co, dn) : ''}
       `;
       // Store current values for recalc
       window._currentBillContext = { co, dn, totalAmt, totalMend, totalOK, bs, billNo, fabricAmt, _finalTotal: finalTotal, _partBill: partBill, _gstRate: gstRate, _discount: discount, _transport: transport, _gst: gst };
+      window._cnCo = co; window._cnDn = dn; window._cnAdj = adjustment;
       document.getElementById('billingModal').style.display = 'flex';
     }
 
@@ -5089,16 +5175,19 @@
       const packing   = parseFloat(document.getElementById('bill-packing')?.value)||0;
       const gst        = r2((ctx.totalAmt - discount) * (gstRate/100));
       const finalTotal = r2(ctx.totalAmt - discount + transport + packing + gst);
-      const partBill   = r2(finalTotal - ctx.bs.lastFinalTotal);
+      // ✅ FIX: recalc also respects credit note logic
+      const rawPB      = r2(finalTotal - ctx.bs.lastFinalTotal);
+      const partBill   = rawPB < 0 ? 0 : rawPB;
       document.getElementById('gst-rate-lbl') && (document.getElementById('gst-rate-lbl').textContent = gstRate);
       document.getElementById('b-gst') && (document.getElementById('b-gst').textContent = '₹'+r2(gst).toFixed(2));
       document.getElementById('b-cum') && (document.getElementById('b-cum').textContent = '₹'+r2(finalTotal).toFixed(2));
-      document.getElementById('b-partbill') && (document.getElementById('b-partbill').textContent = '₹'+r2(partBill).toFixed(2));
-      window._currentBillContext._gstRate   = gstRate;
-      window._currentBillContext._discount  = discount;
-      window._currentBillContext._transport = transport + packing;
+      document.getElementById('b-partbill') && (document.getElementById('b-partbill').textContent = (rawPB<0?'⚠️ Credit: -₹'+Math.abs(rawPB).toFixed(2):'₹'+r2(partBill).toFixed(2)));
+      window._currentBillContext._gstRate    = gstRate;
+      window._currentBillContext._discount   = discount;
+      window._currentBillContext._transport  = transport + packing;
       window._currentBillContext._finalTotal = finalTotal;
       window._currentBillContext._partBill   = partBill;
+      window._currentBillContext._rawPartBill= rawPB;
       window._currentBillContext._gst        = gst;
     }
 
@@ -5146,16 +5235,72 @@
       }
     }
 
+
+    // ✅ NEW: Issue Credit Note when current total < previously billed
+    function issueCreditNote(co, dn, adjustmentAmt) {
+      const dk = dKey(dn);
+      ensureBillState(co, dk);
+      const bs  = billState[co][dk];
+      const now = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+      const cnNo = `CN${String(bs.billCounter + 1).padStart(3,'0')}`;
+      const absAdj = Math.abs(r2(adjustmentAmt));
+
+      if(!confirm(`Issue Credit Note ${cnNo} for ₹${absAdj.toFixed(2)} (adjustment)?`)) return;
+
+      // Store credit note in bill history with negative partBill
+      bs.billHistory.push({
+        billNo: cnNo,
+        date: now,
+        partBill: -absAdj,       // negative = credit
+        cumTotal: 0,
+        gstRate: 0,
+        discount: 0,
+        transport: 0,
+        packing: 0,
+        paid: 0,
+        balance: -absAdj,
+        isCreditNote: true
+      });
+      // ✅ Reset lastFinalTotal to current actual total so next bill is correct
+      const pid = pageId(co, dn);
+      let currentTotal = 0;
+      const invMtrsRate2 = parseFloat(document.getElementById(pid+'-mtrsrate')?.value)||0;
+      document.querySelectorAll(`#${pid}-tbody tr`).forEach(r => {
+        const ok  = parseFloat(r.querySelector('.ok')?.textContent)||0;
+        const men = parseFloat(r.querySelector('.mendAmt')?.textContent)||0;
+        const rowRate2 = parseFloat(r.querySelector('.rate')?.value)||0;
+        const effRate2 = rowRate2 > 0 ? rowRate2 : invMtrsRate2;
+        currentTotal += r2(ok * effRate2) + men;
+      });
+      const gst2 = r2(currentTotal * 0.05);
+      bs.lastFinalTotal = r2(currentTotal + gst2);
+      bs.billCounter++;
+
+      auditLog.push({ action: 'BILL_MODIFIED', billNo: cnNo, co, dn, partBill: -absAdj, date: new Date().toISOString(), user: 'admin' });
+      saveAll();
+      flashToast(`📋 Credit Note ${cnNo} issued — ₹${absAdj.toFixed(2)} adjustment recorded`);
+      closeBillingModal();
+      openBillingModal(co, dn);
+    }
+
     function closeBillingModal() {
       document.getElementById('billingModal').style.display = 'none';
     }
 
     function confirmBill(co, dn, finalTotal, partBill, billNo, gstRate, discount, transport, packing) {
-      // ── Validation ──
-      if(!billNo || partBill <= 0) { flashToast('⚠️ Invalid bill data'); return; }
+      // ── Get state FIRST before any validation that uses it ──
       const dk = dKey(dn);
       ensureBillState(co, dk);
       const bs = billState[co][dk];
+      // ── Validation ──
+      if(!billNo) { flashToast('⚠️ Invalid bill number'); return; }
+      if(partBill < 0) { flashToast('⚠️ Negative bill — issue a Credit Note instead'); return; }
+      if(partBill === 0) { flashToast('ℹ️ Nothing to bill — amount is ₹0.00'); return; }
+      // ✅ Safety check: prevent billing if current total < previous total
+      if(finalTotal < bs.lastFinalTotal) {
+        flashToast('🚨 Current total ₹' + r2(finalTotal).toFixed(2) + ' < Previously billed ₹' + r2(bs.lastFinalTotal).toFixed(2) + '. Issue Credit Note.');
+        return;
+      }
       const now = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
       const paid = 0; // Default 0 paid on creation
       // Save bill to history (with extra fields)
@@ -5198,37 +5343,52 @@
       // Gather table rows for invoice
       let rows = [], totalOK=0, totalMend=0, totalFab=0, totalTM=0, totalPL=0, totalSH=0, totalRET=0;
       const invMtrsRate = parseFloat(document.getElementById(pid+'-mtrsrate')?.value)||0;
+      let rowNum = 0;
       document.querySelectorAll(`#${pid}-tbody tr`).forEach((r,i) => {
+        const tm  = parseFloat(r.querySelector('.tm')?.value)||0;
+        // ✅ Skip completely empty rows (no Total M entered)
+        if (tm === 0) return;
         const ok  = parseFloat(r.querySelector('.ok')?.textContent)||0;
         const men = parseFloat(r.querySelector('.mendAmt')?.textContent)||0;
-        const tm  = parseFloat(r.querySelector('.tm')?.value)||0;
         const pl  = parseFloat(r.querySelector('.pl')?.value)||0;
         const sh  = parseFloat(r.querySelector('.short')?.value)||0;
         const ret = parseFloat(r.querySelector('.ret')?.value)||0;
-        // ✅ FIX: use effective rate (per-row OR register mtrsRate)
         const rowRate = parseFloat(r.querySelector('.rate')?.value)||0;
         const effectiveRate = rowRate > 0 ? rowRate : invMtrsRate;
         const fab = r2(ok * effectiveRate);
         const amt = r2(fab + men);
         totalOK += ok; totalMend += men; totalFab += fab;
         totalTM += tm; totalPL += pl; totalSH += sh; totalRET += ret;
+        rowNum++;
         rows.push({
-          no: i+1,
-          dc: r.querySelector('.dcno')?.value||'',
-          date: r.querySelector('.dateIn')?.value||'',
+          no: rowNum,
+          dc:  r.querySelector('.dcno')?.value||'',
+          date:r.querySelector('.dateIn')?.value||'',
           tm, pl, sh, ret, ok, men, fab, amt,
-          stage: r.querySelector('.stage')?.textContent||''
+          stage: r.querySelector('.stage')?.textContent||'Pending'
         });
       });
       const subtotal = r2(totalFab + totalMend);
       const gst      = r2((subtotal - usedDiscount) * (usedGstRate/100));
       const grand    = r2(subtotal - usedDiscount + usedTransport + gst);
-      const prev     = r2(bs.lastFinalTotal - billData.partBill);
-      const paid     = billData.paid || 0;
-      const balance  = r2(billData.partBill - paid);
-      // Detect bill type
-      const billType = bs.billHistory.length === 0 ? 'FIRST BILL' :
-                       (billData.partBill === billData.finalTotal ? 'FULL BILL' : 'PART BILL');
+      // ✅ FIX: prev = what was billed BEFORE this current bill
+      //         = lastFinalTotal MINUS this bill's partBill (the amount before this bill was added)
+      //         For reprintBillNo: find what lastFinalTotal was before that bill was issued
+      let prev = 0;
+      if (isReprint && reprintBillNo) {
+        // For reprint: prev = cumTotal of that bill - partBill of that bill
+        prev = r2((billData.finalTotal || 0) - (billData.partBill || 0));
+      } else {
+        // For new bill preview: prev = current lastFinalTotal (before this bill is confirmed)
+        prev = r2(bs.lastFinalTotal);
+      }
+      const paid        = billData.paid || 0;
+      // ✅ Calculated part bill = grand (cumulative) - prev (previously billed)
+      const calcPartBill = isReprint ? billData.partBill : r2(grand - prev);
+      const balance      = r2(calcPartBill - paid);
+      // ✅ billType uses calculated values
+      const billType = (prev === 0 && bs.billHistory.length === 0) ? 'FIRST BILL' :
+                       (calcPartBill >= grand) ? 'FULL BILL' : 'PART BILL';
 
       const now = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
       const cname = document.getElementById(pid+'-cname')?.value || c.name;
@@ -5261,10 +5421,10 @@
         count, constr,
         gstRate: usedGstRate, discount: usedDiscount, transport: usedTransport,
         subtotal, gst, grand,
-        prevBilled: r2(Math.max(0, bs.lastFinalTotal - billData.partBill)),
+        prevBilled: r2(prev),  // ✅ FIX: use recalculated prev (correctly = lastFinalTotal before this bill)
         paid: r2(paid), balance: r2(balance),
         rows, billHistory: bs.billHistory || [],
-        amtWords: numToWords(r2(billData.partBill)),
+        amtWords: numToWords(r2(calcPartBill)),
         totals: {
           tm: r2(totalTM), pl: r2(totalPL), sh: r2(totalSH), ret: r2(totalRET),
           ok: r2(totalOK), men: r2(totalMend), fab: r2(totalFab),
@@ -5539,11 +5699,49 @@
             cursor:pointer; font-family:'Outfit',sans-serif; font-size:12px;
           }
           @media print {
+            @page { size: A4 landscape; margin: 6mm 8mm; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+            html, body { margin:0 !important; padding:0 !important; width:100% !important; }
             .inv-footer-btns { display:none !important; }
-            .inv { border-radius:0 !important; page-break-after: always; background:white !important; }
-            .inv-table tr { page-break-inside: avoid; }
-            .inv-grand-block, .inv-words, .inv-sig-strip { page-break-inside: avoid; }
-            .inv-table-wrap { overflow-x: visible !important; }
+            .inv {
+              border-radius:0 !important;
+              background:white !important;
+              width:100% !important;
+              max-width:100% !important;
+              font-size:10px !important;
+            }
+            .inv-header { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .inv-header-inner { padding:16px 22px 12px !important; }
+            .inv-brand-name { font-size:20px !important; }
+            .inv-bill-no { font-size:22px !important; }
+            .inv-type-bar { padding:5px 22px !important; }
+            .inv-info-band { grid-template-columns:1fr 1fr 1fr !important; }
+            .inv-info-cell { padding:10px 14px !important; }
+            .inv-info-value { font-size:14px !important; }
+            .inv-specs-bar { padding:8px 16px !important; gap:12px !important; }
+            .inv-spec-value { font-size:11px !important; }
+            .inv-table-wrap { overflow:visible !important; max-height:none !important; }
+            .inv-table { font-size:9px !important; }
+            .inv-table thead th { padding:6px 7px !important; font-size:8px !important; }
+            .inv-table td { padding:5px 7px !important; font-size:9px !important; }
+            .inv-totals-wrap { padding:12px 16px !important; gap:14px !important; }
+            .inv-summary-stats { gap:8px !important; }
+            .inv-stat-box { padding:8px 10px !important; }
+            .inv-stat-box .isv { font-size:14px !important; }
+            .inv-calc-block { width:240px !important; }
+            .inv-calc-row { padding:5px 0 !important; font-size:10px !important; }
+            .inv-grand-grid { gap:8px !important; }
+            .inv-grand-box { padding:10px 14px !important; }
+            .inv-grand-amount { font-size:18px !important; }
+            .inv-grand-label { font-size:9px !important; }
+            .inv-words { padding:10px 16px !important; }
+            .inv-words-text { font-size:11px !important; }
+            .inv-sig-strip { grid-template-columns:1fr 1fr 1fr !important; }
+            .inv-sig-cell { padding:14px 16px !important; }
+            .inv-footer { padding:8px 16px !important; }
+            .inv-table tr { page-break-inside:avoid; }
+            .inv-grand-block, .inv-words, .inv-sig-strip, .inv-footer { page-break-inside:avoid; }
+            .inv-totals-wrap, .inv-calc-section { page-break-inside:avoid; }
           }
         </style>
 
@@ -5594,7 +5792,7 @@
             <div class="inv-info-cell" style="background:#fffbf0;">
               <div class="inv-info-label">💳 Bill Reference</div>
               <div class="inv-info-value" style="color:#c9a84c;">${billData.billNo}</div>
-              <div class="inv-info-sub">Previous Bills: ${bs.billHistory.length > 0 ? bs.billHistory.length : '0'} &nbsp;·&nbsp; Total Entries: ${rows.length}</div>
+              <div class="inv-info-sub">Previous Bills: ${bs.billHistory.filter(b=>!b.isCreditNote).length} &nbsp;·&nbsp; Total Entries: ${rows.length}</div>
             </div>
           </div>
 
@@ -5613,8 +5811,8 @@
               <div class="inv-spec-value">${document.getElementById(pid+'-crumb')?.value||'—'}</div>
             </div>
             <div class="inv-spec">
-              <div class="inv-spec-label">Mend Rate ₹/hr</div>
-              <div class="inv-spec-value">${document.getElementById(pid+'-mendrate')?.value ? '₹'+document.getElementById(pid+'-mendrate').value : '—'}</div>
+              <div class="inv-spec-label">Mend Rate (Divisor)</div>
+              <div class="inv-spec-value">${document.getElementById(pid+'-mendrate')?.value ? document.getElementById(pid+'-mendrate').value : '—'}</div>
             </div>
             <div class="inv-spec">
               <div class="inv-spec-label">Weaver</div>
@@ -5646,36 +5844,33 @@
                 </tr>
               </thead>
               <tbody>
-                ${rows.map((r,i) => {
+                ${rows.map((r) => {
                   const stageClass = r.stage.toLowerCase().includes('comp') ? 'stage-done' : r.stage.toLowerCase().includes('run') ? 'stage-run' : 'stage-pend';
-                  const pl  = parseFloat(document.getElementById(pid+'-row-'+(r.no-1))?.querySelector('.pl')?.value)||0;
-                  const sh  = parseFloat(document.getElementById(pid+'-row-'+(r.no-1))?.querySelector('.short')?.value)||0;
-                  const ret = parseFloat(document.getElementById(pid+'-row-'+(r.no-1))?.querySelector('.ret')?.value)||0;
                   return `<tr>
                     <td>${r.no}</td>
                     <td>${r.dc||'—'}</td>
                     <td style="text-align:center;color:#6b7c93;font-size:10px;">${r.date||'—'}</td>
-                    <td>${r.tm.toFixed(2)}</td>
-                    <td style="color:#c0392b;">${pl.toFixed(2)}</td>
-                    <td style="color:#e67e22;">${sh.toFixed(2)}</td>
-                    <td style="color:#7b3fa0;">${ret.toFixed(2)}</td>
-                    <td class="td-ok">${r.ok.toFixed(2)}</td>
-                    <td class="td-mend">${r.men.toFixed(2)}</td>
-                    <td>${r.fab.toFixed(2)}</td>
-                    <td class="td-amt">${r.amt.toFixed(2)}</td>
-                    <td class="td-stage"><span class="${stageClass}">${r.stage||'Pending'}</span></td>
+                    <td>${r2(r.tm).toFixed(2)}</td>
+                    <td style="color:#c0392b;">${r2(r.pl).toFixed(2)}</td>
+                    <td style="color:#e67e22;">${r2(r.sh).toFixed(2)}</td>
+                    <td style="color:#7b3fa0;">${r2(r.ret).toFixed(2)}</td>
+                    <td class="td-ok">${r2(r.ok).toFixed(2)}</td>
+                    <td class="td-mend">${r2(r.men).toFixed(2)}</td>
+                    <td>${r2(r.fab).toFixed(2)}</td>
+                    <td class="td-amt">${r2(r.amt).toFixed(2)}</td>
+                    <td class="td-stage"><span class="${stageClass}">${r.stage}</span></td>
                   </tr>`;
                 }).join('')}
-                <!-- TOTALS ROW -->
+                <!-- TOTALS ROW — uses stored values, not DOM re-reads -->
                 <tr style="background:#0d3a5c !important;">
                   <td style="color:rgba(255,255,255,.5);padding-left:16px;" colspan="3"><strong style="color:white;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">TOTALS</strong></td>
-                  <td style="color:white;font-weight:700;">${rows.reduce((s,r)=>s+r.tm,0).toFixed(2)}</td>
-                  <td style="color:#ff9f8e;font-weight:700;">${rows.reduce((s,r)=>s+(parseFloat(document.getElementById(pid+'-row-'+(r.no-1))?.querySelector('.pl')?.value)||0),0).toFixed(2)}</td>
-                  <td style="color:#f0a070;font-weight:700;">${rows.reduce((s,r)=>s+(parseFloat(document.getElementById(pid+'-row-'+(r.no-1))?.querySelector('.short')?.value)||0),0).toFixed(2)}</td>
-                  <td style="color:#d7bdf7;font-weight:700;">${rows.reduce((s,r)=>s+(parseFloat(document.getElementById(pid+'-row-'+(r.no-1))?.querySelector('.ret')?.value)||0),0).toFixed(2)}</td>
+                  <td style="color:white;font-weight:700;">${r2(totalTM).toFixed(2)}</td>
+                  <td style="color:#ff9f8e;font-weight:700;">${r2(totalPL).toFixed(2)}</td>
+                  <td style="color:#f0a070;font-weight:700;">${r2(totalSH).toFixed(2)}</td>
+                  <td style="color:#d7bdf7;font-weight:700;">${r2(totalRET).toFixed(2)}</td>
                   <td style="color:#5fd3d2;font-weight:800;">${r2(totalOK).toFixed(2)}</td>
                   <td style="color:#c084fc;font-weight:700;">${r2(totalMend).toFixed(2)}</td>
-                  <td style="color:var(--gold2,#e8c96a);font-weight:700;">${r2(totalFab).toFixed(2)}</td>
+                  <td style="color:#e8c96a;font-weight:700;">${r2(totalFab).toFixed(2)}</td>
                   <td style="color:#e8c96a;font-weight:800;font-size:13px;">₹${r2(totalFab+totalMend).toFixed(2)}</td>
                   <td></td>
                 </tr>
@@ -5687,7 +5882,7 @@
           <div class="inv-totals-wrap">
             <div class="inv-summary-stats">
               <div class="inv-stat-box">
-                <div class="isv" style="color:#0d3a5c;">${rows.length}</div>
+                <div class="isv" style="color:#0d3a5c;">${rows.length}</div>  <!-- filtered rows only -->
                 <div class="isl">Total Entries</div>
               </div>
               <div class="inv-stat-box">
@@ -5737,23 +5932,23 @@
               <div class="inv-grand-box cumulative">
                 <div>
                   <div class="inv-grand-label">Cumulative Total</div>
-                  <div style="font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;">All bills included</div>
+                  <div style="font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;">All bills to date</div>
                 </div>
                 <div class="inv-grand-amount">₹${r2(grand).toFixed(2)}</div>
               </div>
               <div class="inv-grand-box previous">
                 <div>
                   <div class="inv-grand-label">Previously Billed</div>
-                  <div style="font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;">${bs.billHistory.length} prior bill(s)</div>
+                  <div style="font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;">${isReprint ? (bs.billHistory.length - 1) : bs.billHistory.length} prior bill(s)</div>
                 </div>
-                <div class="inv-grand-amount">₹${r2(bs.lastFinalTotal - (isReprint ? 0 : billData.partBill)).toFixed(2)}</div>
+                <div class="inv-grand-amount">₹${r2(prev).toFixed(2)}</div>
               </div>
               <div class="inv-grand-box partbill">
                 <div>
                   <div class="inv-grand-label">⭐ This Part Bill</div>
                   <div style="font-size:9px;color:#5a4010;margin-top:2px;">Amount due now</div>
                 </div>
-                <div class="inv-grand-amount">₹${r2(billData.partBill).toFixed(2)}</div>
+                <div class="inv-grand-amount">₹${r2(calcPartBill).toFixed(2)}</div>
               </div>
             </div>
           </div>
@@ -5761,7 +5956,7 @@
           <!-- ══ AMOUNT IN WORDS ══ -->
           <div class="inv-words">
             <span class="inv-words-label">Amount in Words</span>
-            <span class="inv-words-text">${numToWords(r2(billData.partBill))}</span>
+            <span class="inv-words-text">${numToWords(r2(calcPartBill))}</span>
           </div>
 
           <!-- ══ PAYMENT STATUS ══ -->
@@ -5770,12 +5965,12 @@
               <div class="isv" style="color:${paid>0?'#1a6b4a':'#aaa'};">₹${r2(paid).toFixed(2)}</div>
               <div class="isl">Paid Amount</div>
             </div>
-            <div class="inv-stat-box" style="flex:1;border:2px solid ${balance>0?'#e74c3c':'#2ecc71'};border-radius:10px;padding:12px 16px;background:${balance>0?'#fff5f5':'#f0fff6'};">
-              <div class="isv" style="color:${balance>0?'#c0392b':'#1a6b4a'};">₹${r2(balance).toFixed(2)}</div>
-              <div class="isl">${balance>0?'Balance Due':'Fully Paid ✓'}</div>
+            <div class="inv-stat-box" style="flex:1;border:2px solid ${r2(calcPartBill-paid)>0?'#e74c3c':'#2ecc71'};border-radius:10px;padding:12px 16px;background:${r2(calcPartBill-paid)>0?'#fff5f5':'#f0fff6'};">
+              <div class="isv" style="color:${r2(calcPartBill-paid)>0?'#c0392b':'#1a6b4a'};">₹${r2(calcPartBill-paid).toFixed(2)}</div>
+              <div class="isl">${r2(calcPartBill-paid)>0?'Balance Due':'Fully Paid ✓'}</div>
             </div>
             <div class="inv-stat-box" style="flex:1;border:2px solid #e8f0f8;border-radius:10px;padding:12px 16px;background:#f9fbfd;">
-              <div class="isv" style="color:#0d3a5c;">₹${r2(billData.partBill).toFixed(2)}</div>
+              <div class="isv" style="color:#0d3a5c;">₹${r2(calcPartBill).toFixed(2)}</div>
               <div class="isl">This Bill Total</div>
             </div>
           </div>
@@ -5792,8 +5987,8 @@
               </div>
             </div>
             <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-          <div id="upiQR" style="width:90px;height:90px;" data-upi="upi://pay?pa=${companyLegal.upi}&pn=TexWeavePro&am=${r2(billData.partBill)}&tn=${billData.billNo}"></div>
-              <div style="font-size:8px;color:#8fa0b3;text-align:center;">Scan to Pay<br>₹${r2(billData.partBill).toFixed(2)}</div>
+          <div id="upiQR" style="width:90px;height:90px;" data-upi="upi://pay?pa=${companyLegal.upi}&pn=TexWeavePro&am=${isReprint ? r2(billData.partBill) : r2(grand - prev)}&tn=${billData.billNo}"></div>
+              <div style="font-size:8px;color:#8fa0b3;text-align:center;">Scan to Pay<br>₹${r2(calcPartBill).toFixed(2)}</div>
             </div>
           </div>
 
@@ -5840,7 +6035,7 @@
         if(qrEl && typeof QRCode !== 'undefined') {
           qrEl.innerHTML = '';
           new QRCode(qrEl, {
-            text: `upi://pay?pa=${companyLegal.upi}&pn=TexWeavePro&am=${r2(billData.partBill)}&tn=${billData.billNo}`,
+            text: `upi://pay?pa=${companyLegal.upi}&pn=TexWeavePro&am=${r2(calcPartBill)}&tn=${billData.billNo}`,
             width: 90, height: 90,
             colorDark: '#0d2d4a', colorLight: '#ffffff',
             correctLevel: QRCode.CorrectLevel.M
