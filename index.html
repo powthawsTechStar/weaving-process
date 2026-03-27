@@ -2953,6 +2953,12 @@
           <div class="icon" style="background:rgba(231,76,60,.15);">📥</div>Restore Backup
         </div>
       </div>
+      <div class="navSection">
+        <div class="navLabel">Automation</div>
+        <div class="navItem" onclick="showPage('telegram')" style="color:rgba(255,255,255,.85);">
+          <div class="icon" style="background:rgba(41,182,246,.2);">✈️</div>Telegram Setup
+        </div>
+      </div>
     </nav>
     <div class="sidebarBottom">
       <div id="autoBackupTime" style="font-size:9px;color:rgba(255,255,255,.25);text-align:center;padding:4px 0 8px;letter-spacing:.5px;">Auto-save every 30s</div>
@@ -3474,6 +3480,119 @@
         <div id="designChips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
       </div>
     </div>
+
+  <!-- ══ TELEGRAM SETUP PAGE ══ -->
+  <div class="page" id="page-telegram">
+    <div class="topBar">
+      <div>
+        <h2>✈️ Telegram Automation</h2>
+        <div class="sub">Connect your bot to send production updates, PDFs & alerts instantly</div>
+      </div>
+      <div class="topActions">
+        <span class="badge" id="tgStatusBadge" style="background:rgba(231,76,60,.18);color:#e74c3c;border-color:rgba(231,76,60,.3);">🔴 Not Connected</span>
+        <button onclick="testTelegramConnection()" style="background:rgba(41,182,246,.15);border:1px solid rgba(41,182,246,.3);color:#29b6f6;padding:5px 14px;border-radius:7px;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;">🔗 Test Connection</button>
+      </div>
+    </div>
+
+    <!-- Config Cards -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;">
+      <!-- Bot Config -->
+      <div class="panel">
+        <div class="panelHead"><h4>🤖 Bot Configuration</h4><span>Required</span></div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px;">Bot Token</label>
+            <input id="tgBotToken" type="password" placeholder="123456789:ABCDefGhIJKlm..." style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px 12px;color:white;font-family:'Outfit',sans-serif;font-size:12px;outline:none;">
+            <div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:3px;">Get from @BotFather → /newbot</div>
+          </div>
+          <div>
+            <label style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px;">Chat ID</label>
+            <input id="tgChatId" type="text" placeholder="987654321 or -100123456789" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px 12px;color:white;font-family:'Outfit',sans-serif;font-size:12px;outline:none;">
+            <div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:3px;">Get from @userinfobot · Use negative ID for groups</div>
+          </div>
+          <button onclick="saveTelegramConfig()" style="background:linear-gradient(135deg,rgba(14,124,123,.6),rgba(14,124,123,.3));border:1px solid rgba(14,124,123,.5);color:white;padding:10px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;">💾 Save Configuration</button>
+        </div>
+      </div>
+
+      <!-- Google Sheets (optional) -->
+      <div class="panel">
+        <div class="panelHead"><h4>📊 Google Sheets (Optional)</h4><span>Cloud Database</span></div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px;">Apps Script URL</label>
+            <input id="tgSheetUrl" type="text" placeholder="https://script.google.com/macros/s/.../exec" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px 12px;color:white;font-family:'Outfit',sans-serif;font-size:12px;outline:none;">
+            <div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:3px;">Auto-save all orders to your Google Sheet</div>
+          </div>
+          <!-- Auto-send toggle -->
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-size:12px;font-weight:600;">🤖 Auto-Send PDF on Bill Confirm</div>
+              <div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px;">Every confirmed bill auto-sends to Telegram</div>
+            </div>
+            <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
+              <input type="checkbox" id="tgAutoSend" style="opacity:0;width:0;height:0;" onchange="saveTelegramConfig()">
+              <span id="tgToggleSpan" style="position:absolute;inset:0;background:rgba(255,255,255,.15);border-radius:11px;transition:.3s;"></span>
+              <span id="tgToggleThumb" style="position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;"></span>
+            </label>
+          </div>
+          <button onclick="saveTelegramConfig()" style="background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.3);color:#2ecc71;padding:10px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;">✅ Save Sheet Config</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step-by-step guide -->
+    <div class="panel" style="margin-bottom:22px;">
+      <div class="panelHead"><h4>⚙️ Setup Guide</h4><span>4 Steps</span></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+        <div style="background:rgba(41,182,246,.08);border:1px solid rgba(41,182,246,.2);border-radius:10px;padding:14px;">
+          <div style="font-size:22px;margin-bottom:6px;">1️⃣</div>
+          <div style="font-size:11px;font-weight:700;color:#29b6f6;margin-bottom:4px;">Create Bot</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.5;">Open Telegram → search <strong style="color:white;">@BotFather</strong> → /newbot → copy the token</div>
+        </div>
+        <div style="background:rgba(14,124,123,.08);border:1px solid rgba(14,124,123,.2);border-radius:10px;padding:14px;">
+          <div style="font-size:22px;margin-bottom:6px;">2️⃣</div>
+          <div style="font-size:11px;font-weight:700;color:#5fd3d2;margin-bottom:4px;">Get Chat ID</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.5;">Search <strong style="color:white;">@userinfobot</strong> → Start → copy your ID (negative = group)</div>
+        </div>
+        <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:14px;">
+          <div style="font-size:22px;margin-bottom:6px;">3️⃣</div>
+          <div style="font-size:11px;font-weight:700;color:var(--gold2);margin-bottom:4px;">Paste Here</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.5;">Enter Bot Token + Chat ID above and click <strong style="color:white;">Save Configuration</strong></div>
+        </div>
+        <div style="background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.2);border-radius:10px;padding:14px;">
+          <div style="font-size:22px;margin-bottom:6px;">4️⃣</div>
+          <div style="font-size:11px;font-weight:700;color:#2ecc71;margin-bottom:4px;">Test & Go!</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.5;">Click <strong style="color:white;">Test Connection</strong> to verify, then use buttons in any invoice</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Button descriptions -->
+    <div class="panel">
+      <div class="panelHead"><h4>🚀 What Each Button Does</h4><span>On every invoice</span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+        <div style="background:rgba(41,182,246,.07);border:1px solid rgba(41,182,246,.15);border-radius:10px;padding:16px;">
+          <div style="font-size:20px;margin-bottom:6px;">📤</div>
+          <div style="font-size:13px;font-weight:700;color:#29b6f6;margin-bottom:6px;">TG Update (Text)</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.45);line-height:1.6;">Sends a formatted production summary message: company, design, order qty, OK meter, billing amount &amp; smart alerts.</div>
+          <div style="margin-top:8px;font-size:9px;color:rgba(255,255,255,.25);">✔ Quick status · ✔ Daily report · ✔ Instant alert</div>
+        </div>
+        <div style="background:rgba(155,89,182,.07);border:1px solid rgba(155,89,182,.2);border-radius:10px;padding:16px;">
+          <div style="font-size:20px;margin-bottom:6px;">📸</div>
+          <div style="font-size:13px;font-weight:700;color:#c084fc;margin-bottom:6px;">Screenshot</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.45);line-height:1.6;">Captures the invoice as a full-resolution PNG and downloads it. Share manually in Telegram or WhatsApp.</div>
+          <div style="margin-top:8px;font-size:9px;color:rgba(255,255,255,.25);">✔ Visual proof · ✔ Quick share · ✔ No PDF needed</div>
+        </div>
+        <div style="background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.2);border-radius:10px;padding:16px;">
+          <div style="font-size:20px;margin-bottom:6px;">📄</div>
+          <div style="font-size:13px;font-weight:700;color:#e74c3c;margin-bottom:6px;">Send PDF</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.45);line-height:1.6;">Generates the invoice as a PDF and sends it directly to your Telegram chat — official document, full details.</div>
+          <div style="margin-top:8px;font-size:9px;color:rgba(255,255,255,.25);">✔ Client share · ✔ Record keeping · ✔ Automatic</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   </main>
 
@@ -6022,6 +6141,9 @@
             </div>
             <div class="inv-footer-btns">
               <button class="inv-btn-print" onclick="printBillDirect()">🖨️ Print Invoice</button>
+              <button onclick="tgSendText()" style="background:rgba(41,182,246,.2);border:1px solid rgba(41,182,246,.4);color:#29b6f6;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">📤 TG Update</button>
+              <button onclick="tgScreenshot()" style="background:rgba(155,89,182,.2);border:1px solid rgba(155,89,182,.4);color:#c084fc;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">📸 Screenshot</button>
+              <button onclick="tgSendPDF()" style="background:rgba(231,76,60,.18);border:1px solid rgba(231,76,60,.35);color:#e74c3c;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">📄 Send PDF</button>
               <button class="inv-btn-close" onclick="closePrintBillModal()">✕ Close</button>
             </div>
           </div>
@@ -6619,6 +6741,239 @@
       }, { passive: true });
     })();
     document.querySelector('.tblWrap')?.addEventListener('touchstart', () => {}, { passive: true });
+  </script>
+
+  <script>
+    // ══════════════════════════════════════════════
+    // TELEGRAM AUTOMATION — TexWeave Pro v15
+    // ══════════════════════════════════════════════
+
+    // ── Storage keys ──
+    const TG_KEY = 'twp_tg_config';
+
+    function getTGConfig() {
+      try { return JSON.parse(localStorage.getItem(TG_KEY) || '{}'); } catch(e) { return {}; }
+    }
+    function saveTelegramConfig() {
+      const token    = document.getElementById('tgBotToken')?.value.trim() || '';
+      const chatId   = document.getElementById('tgChatId')?.value.trim() || '';
+      const sheetUrl = document.getElementById('tgSheetUrl')?.value.trim() || '';
+      const autoSend = document.getElementById('tgAutoSend')?.checked || false;
+      localStorage.setItem(TG_KEY, JSON.stringify({ token, chatId, sheetUrl, autoSend }));
+      updateTGToggleUI(autoSend);
+      updateTGStatusBadge(!!token && !!chatId);
+      flashToast('✈️ Telegram config saved!');
+    }
+
+    function loadTelegramConfigUI() {
+      const cfg = getTGConfig();
+      const tokenEl = document.getElementById('tgBotToken');
+      const chatEl  = document.getElementById('tgChatId');
+      const sheetEl = document.getElementById('tgSheetUrl');
+      const autoEl  = document.getElementById('tgAutoSend');
+      if (tokenEl) tokenEl.value = cfg.token || '';
+      if (chatEl)  chatEl.value  = cfg.chatId || '';
+      if (sheetEl) sheetEl.value = cfg.sheetUrl || '';
+      if (autoEl)  autoEl.checked = cfg.autoSend || false;
+      updateTGToggleUI(cfg.autoSend || false);
+      updateTGStatusBadge(!!(cfg.token && cfg.chatId));
+    }
+
+    function updateTGStatusBadge(connected) {
+      const b = document.getElementById('tgStatusBadge');
+      if (!b) return;
+      if (connected) {
+        b.style.background = 'rgba(46,204,113,.18)'; b.style.color = '#2ecc71'; b.style.borderColor = 'rgba(46,204,113,.3)';
+        b.textContent = '🟢 Connected';
+      } else {
+        b.style.background = 'rgba(231,76,60,.18)'; b.style.color = '#e74c3c'; b.style.borderColor = 'rgba(231,76,60,.3)';
+        b.textContent = '🔴 Not Connected';
+      }
+    }
+
+    function updateTGToggleUI(on) {
+      const span  = document.getElementById('tgToggleSpan');
+      const thumb = document.getElementById('tgToggleThumb');
+      if (!span || !thumb) return;
+      span.style.background  = on ? 'rgba(14,124,123,.7)' : 'rgba(255,255,255,.15)';
+      thumb.style.transform  = on ? 'translateX(18px)' : 'translateX(0)';
+    }
+
+    // Load config whenever the Telegram page is shown
+    const _origShowPage = window.showPage;
+    window.showPage = function(id) {
+      _origShowPage && _origShowPage(id);
+      if (id === 'telegram') setTimeout(loadTelegramConfigUI, 50);
+    };
+
+    // ── Test Connection ──
+    async function testTelegramConnection() {
+      const cfg = getTGConfig();
+      if (!cfg.token || !cfg.chatId) { flashToast('⚠️ Please save Bot Token & Chat ID first'); return; }
+      flashToast('🔄 Testing connection...');
+      try {
+        const res = await fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: cfg.chatId, text: '✅ TexWeave Pro – Telegram Connected!\n🧵 Your ERP is now linked.' })
+        });
+        const data = await res.json();
+        if (data.ok) { flashToast('✅ Connected! Check your Telegram.'); updateTGStatusBadge(true); }
+        else flashToast('❌ Error: ' + (data.description || 'Unknown'));
+      } catch(e) { flashToast('❌ Network error – check token & internet'); }
+    }
+
+    // ── Extract bill data from the current invoice ──
+    function extractBillDataFromInvoice() {
+      const box = document.getElementById('printBillBox');
+      if (!box) return null;
+      const get = (sel) => box.querySelector(sel)?.textContent?.trim() || '';
+      // Pull key info from rendered invoice DOM
+      const company  = get('.inv-co-name') || get('h1') || 'Company';
+      const design   = get('.inv-design-name') || '';
+      const billNo   = get('.inv-bill-no') || '';
+      // Try to get totals from summary rows
+      const rows     = [...box.querySelectorAll('table tr')];
+      let totalMeter = '', okMeter = '', billingAmt = '';
+      rows.forEach(r => {
+        const cells = [...r.querySelectorAll('td,th')];
+        const label = cells.map(c=>c.textContent).join(' ').toLowerCase();
+        if (label.includes('total meter') || label.includes('total tm')) totalMeter = cells[cells.length-1]?.textContent?.trim() || '';
+        if (label.includes('ok meter') || label.includes('ok m'))       okMeter    = cells[cells.length-1]?.textContent?.trim() || '';
+        if (label.includes('part bill') || label.includes('billing'))   billingAmt = cells[cells.length-1]?.textContent?.trim() || '';
+      });
+      // Also try _printData which is richer
+      const pd = window._printData;
+      if (pd) {
+        totalMeter = totalMeter || (pd.rows?.reduce((s,r)=>s+(parseFloat(r.tm)||0),0).toFixed(2)+' m');
+        okMeter    = okMeter    || (pd.rows?.reduce((s,r)=>s+(parseFloat(r.ok)||0),0).toFixed(2)+' m');
+        billingAmt = billingAmt || ('₹'+(pd.partBill||pd.finalTotal||0));
+      }
+      return { company, design, billNo, totalMeter, okMeter, billingAmt };
+    }
+
+    // ── TG Update (Text) ──
+    async function tgSendText() {
+      const cfg = getTGConfig();
+      if (!cfg.token || !cfg.chatId) { flashToast('⚠️ Configure Telegram first — go to Telegram Setup'); return; }
+      const d = extractBillDataFromInvoice() || {};
+      const now = new Date().toLocaleString('en-IN');
+      const msg = `🏭 *TexWeave Pro – Production Update*\n\n`
+        + `🏢 *Company:* ${d.company||'—'}\n`
+        + `🎨 *Design:* ${d.design||'—'}\n`
+        + `🧾 *Bill No:* ${d.billNo||'—'}\n`
+        + `📦 *Total Meter:* ${d.totalMeter||'—'}\n`
+        + `✅ *OK Meter:* ${d.okMeter||'—'}\n`
+        + `💰 *Billing Amount:* ${d.billingAmt||'—'}\n`
+        + `🕐 *Time:* ${now}\n`
+        + `\n_Sent via TexWeave Pro ERP_`;
+      flashToast('📤 Sending text update...');
+      try {
+        const res = await fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: cfg.chatId, text: msg, parse_mode: 'Markdown' })
+        });
+        const data = await res.json();
+        data.ok ? flashToast('✅ TG Update sent!') : flashToast('❌ ' + (data.description || 'Send failed'));
+      } catch(e) { flashToast('❌ Network error'); }
+    }
+
+    // ── Screenshot (html2canvas fallback) ──
+    async function tgScreenshot() {
+      flashToast('📸 Capturing screenshot...');
+      const box = document.getElementById('printBillBox');
+      if (!box) { flashToast('⚠️ No invoice loaded'); return; }
+      // Use html2canvas if available, else jsPDF blob
+      if (typeof html2canvas === 'undefined') {
+        // Lazy-load html2canvas
+        await new Promise((res, rej) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+          s.onload = res; s.onerror = rej;
+          document.head.appendChild(s);
+        });
+      }
+      try {
+        const canvas = await html2canvas(box, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+        const dataUrl = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        const d = extractBillDataFromInvoice() || {};
+        a.download = `Invoice_${d.billNo||'bill'}_${Date.now()}.png`;
+        a.href = dataUrl;
+        a.click();
+        flashToast('✅ Screenshot saved! Share manually in Telegram.');
+      } catch(e) { flashToast('❌ Screenshot failed: ' + e.message); }
+    }
+
+    // ── Send PDF to Telegram ──
+    async function tgSendPDF() {
+      const cfg = getTGConfig();
+      if (!cfg.token || !cfg.chatId) { flashToast('⚠️ Configure Telegram first — go to Telegram Setup'); return; }
+      const box = document.getElementById('printBillBox');
+      if (!box) { flashToast('⚠️ No invoice loaded'); return; }
+      flashToast('📄 Preparing PDF...');
+      // Lazy-load html2canvas + jsPDF
+      const loadScript = (src) => new Promise((res, rej) => {
+        if (document.querySelector(`script[src="${src}"]`)) { res(); return; }
+        const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s);
+      });
+      try {
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+        flashToast('📄 Rendering invoice...');
+        const canvas = await html2canvas(box, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pW = pdf.internal.pageSize.getWidth();
+        const pH = pdf.internal.pageSize.getHeight();
+        const ratio = canvas.height / canvas.width;
+        const imgH = pW * ratio;
+        if (imgH <= pH) {
+          pdf.addImage(imgData, 'PNG', 0, 0, pW, imgH);
+        } else {
+          // Multi-page if invoice is tall
+          let y = 0;
+          while (y < canvas.height) {
+            const sliceH = Math.min(canvas.height - y, canvas.width * pH / pW);
+            const tmpCanvas = document.createElement('canvas');
+            tmpCanvas.width = canvas.width; tmpCanvas.height = sliceH;
+            tmpCanvas.getContext('2d').drawImage(canvas, 0, y, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+            if (y > 0) pdf.addPage();
+            pdf.addImage(tmpCanvas.toDataURL('image/png'), 'PNG', 0, 0, pW, pH);
+            y += sliceH;
+          }
+        }
+        const d = extractBillDataFromInvoice() || {};
+        const pdfBlob = pdf.output('blob');
+        flashToast('📤 Sending PDF to Telegram...');
+        const formData = new FormData();
+        formData.append('chat_id', cfg.chatId);
+        formData.append('caption', `📄 Invoice ${d.billNo||''} – ${d.company||''} | ${d.billingAmt||''}\n_TexWeave Pro ERP_`);
+        formData.append('parse_mode', 'Markdown');
+        formData.append('document', pdfBlob, `Invoice_${d.billNo||'bill'}.pdf`);
+        const res = await fetch(`https://api.telegram.org/bot${cfg.token}/sendDocument`, { method: 'POST', body: formData });
+        const data = await res.json();
+        data.ok ? flashToast('✅ PDF sent to Telegram!') : flashToast('❌ ' + (data.description || 'Send failed'));
+      } catch(e) { flashToast('❌ PDF error: ' + e.message); }
+    }
+
+    // ── Auto-send on bill confirm (hook into confirmBill) ──
+    const _origConfirmBill = window.confirmBill;
+    if (typeof confirmBill === 'function') {
+      window.confirmBill = async function(...args) {
+        await (_origConfirmBill || confirmBill).apply(this, args);
+        const cfg = getTGConfig();
+        if (cfg.autoSend && cfg.token && cfg.chatId) {
+          setTimeout(() => tgSendPDF(), 1200);
+        }
+      };
+    }
+
+    // ── Init on load ──
+    window.addEventListener('load', () => {
+      const cfg = getTGConfig();
+      updateTGStatusBadge(!!(cfg.token && cfg.chatId));
+    });
   </script>
 
 </body>
