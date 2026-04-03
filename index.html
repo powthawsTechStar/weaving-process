@@ -2293,7 +2293,8 @@
 
       /* ✅ Hide animated background, mobile bar, bill modal */
       .bgCanvas, .mobileTopBar { display: none !important; }
-      #printBillModal { display: none !important; }
+      /* ✅ FIX: only hide bill modal when NOT in bill-print mode */
+      body:not(.printing-bill) #printBillModal { display: none !important; }
 
       .sidebar,
       .topBar .topActions,
@@ -2416,6 +2417,9 @@
         color: #0d3a5c !important;
         background: #e8f0f8 !important;
       }
+      /* ✅ FIX: hide animated warning badge in print */
+      #\*-mrOkBadge, [id$="-mrOkBadge"] { display: none !important; }
+      [id$="-mrOkRatio"] { color: #0d3a5c !important; background: #e8f0f8 !important; }
 
       .pOnly {
         display: block !important;
@@ -3404,8 +3408,8 @@
           <button class="btnExportCSV" onclick="exportReportCSV()">⬇️ Export Excel</button>
           <button onclick="openAnalytics()" style="background:rgba(14,124,123,.2);color:#5fd3d2;border:1px solid rgba(14,124,123,.3);padding:7px 14px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">📈 Analytics</button>
           <button onclick="exportJSONBackup()" style="background:rgba(46,204,113,.15);color:#2ecc71;border:1px solid rgba(46,204,113,.3);padding:7px 14px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">📦 JSON Backup</button>
-          <button class="btnExport" onclick="document.body.classList.remove('printing-bill');window.print()"
-            style="background:rgba(123,63,160,.2);color:#c084fc;border-color:rgba(123,63,160,.3);">🖨️ Print</button>
+          <button class="btnExport" onclick="document.body.classList.remove('printing-bill');showPage('reports');setTimeout(()=>window.print(),100)"
+            style="background:rgba(123,63,160,.2);color:#c084fc;border-color:rgba(123,63,160,.3);">🖨️ Print Report</button>
         </div>
       </div>
       <div class="panel">
@@ -4390,7 +4394,7 @@
         sh  +=parseFloat(r.querySelector('.short')?.value)||0;
         men +=parseFloat(r.querySelector('.mendY')?.value)||0;
         ret +=parseFloat(r.querySelector('.ret')?.value)||0;
-        mendAmt+=parseFloat(r.querySelector('.mendAmt')?.textContent)||0;
+        mendAmt+=parseFloat(r.querySelector('.mendAmt')?.dataset?.rawMend||r.querySelector('.mendAmt')?.textContent)||0;
       });
       const now=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
       const setE=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
@@ -4410,6 +4414,12 @@
       if(pSum){pSum.style.display='block';pSum.classList.add('pOnly');}
       showPage(pid.replace(/^page-/,''));
       document.body.classList.remove('printing-bill');
+      // ✅ FIX: hide pSummary after print dialog closes
+      function onAfterRegPrint() {
+        if(pSum){ pSum.style.display='none'; pSum.classList.remove('pOnly'); }
+        window.removeEventListener('afterprint', onAfterRegPrint);
+      }
+      window.addEventListener('afterprint', onAfterRegPrint);
       setTimeout(()=>window.print(),200);
     }
 
@@ -6383,17 +6393,16 @@
         alert('No invoice loaded. Please click Preview Invoice first.');
         return;
       }
-      // Ensure modal is visible
-      modal.style.display = 'flex';
-      // Add class so @media print CSS isolates the invoice
+      // ✅ FIX: add class FIRST, then show modal, then print
       document.body.classList.add('printing-bill');
-      // Clean up class after print dialog closes
+      modal.style.display = 'flex';
+      // Clean up after print dialog closes
       function onAfterPrint() {
         document.body.classList.remove('printing-bill');
         window.removeEventListener('afterprint', onAfterPrint);
       }
       window.addEventListener('afterprint', onAfterPrint);
-      setTimeout(() => window.print(), 150);
+      setTimeout(() => window.print(), 200);
     }
 
     // ✅ FIX: Close bill modal and clean up class
