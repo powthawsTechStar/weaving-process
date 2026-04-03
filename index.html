@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0d2d4a">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>TexWeave Pro – Textile ERP v7</title>
+  <title>TexWeave Pro – Textile ERP v16 (ERP Billing)</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Outfit:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
@@ -1413,6 +1413,11 @@
       margin-left: 6px;
       font-family: 'Outfit', sans-serif;
       font-weight: 700;
+    }
+
+    @keyframes mrPulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(243,156,18,.4); }
+      50%       { opacity: .85; box-shadow: 0 0 0 5px rgba(243,156,18,0); }
     }
 
     .btnAddRow {
@@ -3481,119 +3486,6 @@
       </div>
     </div>
 
-  <!-- ══ TELEGRAM SETUP PAGE ══ -->
-  <div class="page" id="page-telegram">
-    <div class="topBar">
-      <div>
-        <h2>✈️ Telegram Automation</h2>
-        <div class="sub">Connect your bot to send production updates, PDFs & alerts instantly</div>
-      </div>
-      <div class="topActions">
-        <span class="badge" id="tgStatusBadge" style="background:rgba(231,76,60,.18);color:#e74c3c;border-color:rgba(231,76,60,.3);">🔴 Not Connected</span>
-        <button onclick="testTelegramConnection()" style="background:rgba(41,182,246,.15);border:1px solid rgba(41,182,246,.3);color:#29b6f6;padding:5px 14px;border-radius:7px;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;">🔗 Test Connection</button>
-      </div>
-    </div>
-
-    <!-- Config Cards -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;">
-      <!-- Bot Config -->
-      <div class="panel">
-        <div class="panelHead"><h4>🤖 Bot Configuration</h4><span>Required</span></div>
-        <div style="display:flex;flex-direction:column;gap:14px;">
-          <div>
-            <label style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px;">Bot Token</label>
-            <input id="tgBotToken" type="password" placeholder="123456789:ABCDefGhIJKlm..." style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px 12px;color:white;font-family:'Outfit',sans-serif;font-size:12px;outline:none;">
-            <div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:3px;">Get from @BotFather → /newbot</div>
-          </div>
-          <div>
-            <label style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px;">Chat ID</label>
-            <input id="tgChatId" type="text" placeholder="987654321 or -100123456789" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px 12px;color:white;font-family:'Outfit',sans-serif;font-size:12px;outline:none;">
-            <div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:3px;">Get from @userinfobot · Use negative ID for groups</div>
-          </div>
-          <button onclick="saveTelegramConfig()" style="background:linear-gradient(135deg,rgba(14,124,123,.6),rgba(14,124,123,.3));border:1px solid rgba(14,124,123,.5);color:white;padding:10px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;">💾 Save Configuration</button>
-        </div>
-      </div>
-
-      <!-- Google Sheets (optional) -->
-      <div class="panel">
-        <div class="panelHead"><h4>📊 Google Sheets (Optional)</h4><span>Cloud Database</span></div>
-        <div style="display:flex;flex-direction:column;gap:14px;">
-          <div>
-            <label style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px;">Apps Script URL</label>
-            <input id="tgSheetUrl" type="text" placeholder="https://script.google.com/macros/s/.../exec" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px 12px;color:white;font-family:'Outfit',sans-serif;font-size:12px;outline:none;">
-            <div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:3px;">Auto-save all orders to your Google Sheet</div>
-          </div>
-          <!-- Auto-send toggle -->
-          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:space-between;">
-            <div>
-              <div style="font-size:12px;font-weight:600;">🤖 Auto-Send PDF on Bill Confirm</div>
-              <div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px;">Every confirmed bill auto-sends to Telegram</div>
-            </div>
-            <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
-              <input type="checkbox" id="tgAutoSend" style="opacity:0;width:0;height:0;" onchange="saveTelegramConfig()">
-              <span id="tgToggleSpan" style="position:absolute;inset:0;background:rgba(255,255,255,.15);border-radius:11px;transition:.3s;"></span>
-              <span id="tgToggleThumb" style="position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;"></span>
-            </label>
-          </div>
-          <button onclick="saveTelegramConfig()" style="background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.3);color:#2ecc71;padding:10px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;">✅ Save Sheet Config</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Step-by-step guide -->
-    <div class="panel" style="margin-bottom:22px;">
-      <div class="panelHead"><h4>⚙️ Setup Guide</h4><span>4 Steps</span></div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
-        <div style="background:rgba(41,182,246,.08);border:1px solid rgba(41,182,246,.2);border-radius:10px;padding:14px;">
-          <div style="font-size:22px;margin-bottom:6px;">1️⃣</div>
-          <div style="font-size:11px;font-weight:700;color:#29b6f6;margin-bottom:4px;">Create Bot</div>
-          <div style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.5;">Open Telegram → search <strong style="color:white;">@BotFather</strong> → /newbot → copy the token</div>
-        </div>
-        <div style="background:rgba(14,124,123,.08);border:1px solid rgba(14,124,123,.2);border-radius:10px;padding:14px;">
-          <div style="font-size:22px;margin-bottom:6px;">2️⃣</div>
-          <div style="font-size:11px;font-weight:700;color:#5fd3d2;margin-bottom:4px;">Get Chat ID</div>
-          <div style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.5;">Search <strong style="color:white;">@userinfobot</strong> → Start → copy your ID (negative = group)</div>
-        </div>
-        <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:14px;">
-          <div style="font-size:22px;margin-bottom:6px;">3️⃣</div>
-          <div style="font-size:11px;font-weight:700;color:var(--gold2);margin-bottom:4px;">Paste Here</div>
-          <div style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.5;">Enter Bot Token + Chat ID above and click <strong style="color:white;">Save Configuration</strong></div>
-        </div>
-        <div style="background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.2);border-radius:10px;padding:14px;">
-          <div style="font-size:22px;margin-bottom:6px;">4️⃣</div>
-          <div style="font-size:11px;font-weight:700;color:#2ecc71;margin-bottom:4px;">Test & Go!</div>
-          <div style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.5;">Click <strong style="color:white;">Test Connection</strong> to verify, then use buttons in any invoice</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Button descriptions -->
-    <div class="panel">
-      <div class="panelHead"><h4>🚀 What Each Button Does</h4><span>On every invoice</span></div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
-        <div style="background:rgba(41,182,246,.07);border:1px solid rgba(41,182,246,.15);border-radius:10px;padding:16px;">
-          <div style="font-size:20px;margin-bottom:6px;">📤</div>
-          <div style="font-size:13px;font-weight:700;color:#29b6f6;margin-bottom:6px;">TG Update (Text)</div>
-          <div style="font-size:10px;color:rgba(255,255,255,.45);line-height:1.6;">Sends a formatted production summary message: company, design, order qty, OK meter, billing amount &amp; smart alerts.</div>
-          <div style="margin-top:8px;font-size:9px;color:rgba(255,255,255,.25);">✔ Quick status · ✔ Daily report · ✔ Instant alert</div>
-        </div>
-        <div style="background:rgba(155,89,182,.07);border:1px solid rgba(155,89,182,.2);border-radius:10px;padding:16px;">
-          <div style="font-size:20px;margin-bottom:6px;">📸</div>
-          <div style="font-size:13px;font-weight:700;color:#c084fc;margin-bottom:6px;">Screenshot</div>
-          <div style="font-size:10px;color:rgba(255,255,255,.45);line-height:1.6;">Captures the invoice as a full-resolution PNG and downloads it. Share manually in Telegram or WhatsApp.</div>
-          <div style="margin-top:8px;font-size:9px;color:rgba(255,255,255,.25);">✔ Visual proof · ✔ Quick share · ✔ No PDF needed</div>
-        </div>
-        <div style="background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.2);border-radius:10px;padding:16px;">
-          <div style="font-size:20px;margin-bottom:6px;">📄</div>
-          <div style="font-size:13px;font-weight:700;color:#e74c3c;margin-bottom:6px;">Send PDF</div>
-          <div style="font-size:10px;color:rgba(255,255,255,.45);line-height:1.6;">Generates the invoice as a PDF and sends it directly to your Telegram chat — official document, full details.</div>
-          <div style="margin-top:8px;font-size:9px;color:rgba(255,255,255,.25);">✔ Client share · ✔ Record keeping · ✔ Automatic</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
   </main>
 
   <!-- ══ PIECE MODAL ══ -->
@@ -4142,7 +4034,7 @@
             <div class="iField"><label>Pick Rate</label><input id="${pid}-pickrate" placeholder="0.25" type="number" step="0.01"></div>
             <div class="iField"><label>Mtrs Rate (₹)</label><input id="${pid}-mtrsrate" placeholder="16.25" type="number" step="0.01" oninput="applyMtrsRate('${pid}')"></div>
             <div class="iField"><label>Crumb %</label><input id="${pid}-crumb" placeholder="4" type="number" step="0.01"></div>
-            <div class="iField"><label>Mend Rate (Divisor)</label><input id="${pid}-mendrate" placeholder="100" type="number" step="0.01" oninput="recalcAllRows('${pid}')" title="Mending formula: (Inches ÷ Rate) × 100"></div>
+            <div class="iField"><label>Mend Rate (Divisor)</label><input id="${pid}-mendrate" placeholder="38" type="number" step="0.01" oninput="recalcAllRows('${pid}')" title="Mending formula: (Inches ÷ Rate) × 100 | Default: 38"></div>
             <div class="iField"><label>Last Date</label><input id="${pid}-lastdate" type="date"></div>
           </div>
           <div class="filterBar">
@@ -4164,7 +4056,7 @@
                   <th>#</th><th>DC No.</th><th>Date</th><th>Pieces</th>
                   <th>Meter</th><th>Total M ✎</th><th>Folding</th><th>Pin Less ✎</th>
                   <th>±Short</th><th>Return</th><th>Mending Y</th><th>Mend Amt</th><th>OK Meter</th><th>Rate</th>
-                  <th>Amount</th><th>Stage</th><th></th>
+                  <th>Amount</th><th>Stage</th><th>Bill</th><th></th>
                 </tr>
               </thead>
               <tbody id="${pid}-tbody"></tbody>
@@ -4172,7 +4064,13 @@
           </div>
           <div class="regFooter">
             <button class="btnAddRow" onclick="addRegRow('${co}','${dn.replace(/'/g,"\\'")}')">+ Add Row</button>
-            <div class="grandTotalDisp">Grand Total: <span id="${pid}-grandTotal">0.00</span> m &nbsp;|&nbsp; OK: <span id="${pid}-grandOK">0.00</span> m &nbsp;|&nbsp; ₹<span id="${pid}-grandAmt">0.00</span></div>
+            <div class="grandTotalDisp" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
+              Grand Total: <span id="${pid}-grandTotal">0.00</span> m &nbsp;|&nbsp; OK: <span id="${pid}-grandOK">0.00</span> m &nbsp;|&nbsp; ₹<span id="${pid}-grandAmt">0.00</span>
+              &nbsp;|&nbsp;
+              <span style="font-size:11px;color:rgba(255,255,255,.5);font-weight:500;">MR/OK Ratio:</span>
+              <span id="${pid}-mrOkRatio" style="font-size:13px;font-weight:800;color:#2ecc71;transition:color .3s;">0.00</span>
+              <span id="${pid}-mrOkBadge" style="display:none;align-items:center;gap:5px;background:rgba(243,156,18,.18);border:1.5px solid rgba(243,156,18,.55);color:#f39c12;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.5px;animation:mrPulse 1.5s ease-in-out infinite;">&#9888;&#65039; HIGH MENDING &gt; 0.30</span>
+            </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <button class="btnConfirmBill" onclick="openBillingModal('${co}','${dn.replace(/'/g,"\\'")}')">💳 Part Bill</button>
               <button class="btnExport" onclick="exportRegExcel('${co}','${dn.replace(/'/g,"\\'")}')">⬇️ Export</button>
@@ -4267,6 +4165,7 @@
         <td><input type="number" class="rate" step="0.01" placeholder="0.00" style="width:54px;${inS}" oninput="calcRow('${pid}',${idx});updateGrandTotal('${pid}');updateDashboard();saveAll()"></td>
         <td class="computed amt" style="font-weight:700;color:var(--gold2);min-width:56px;">0.00</td>
         <td class="stageCell"><span class="stage pending" onclick="cycleStage(this)">Pending</span></td>
+        <td style="text-align:center;"><span class="billedBadge" style="display:none;font-size:9px;background:rgba(46,204,113,.2);color:#2ecc8e;border:1px solid rgba(46,204,113,.3);padding:2px 6px;border-radius:10px;white-space:nowrap;">🔒 BILLED</span></td>
         <td><button class="btnDel" onclick="delRegRow('${co}','${dn.replace(/'/g,"\\'")}',${idx})">×</button></td>`;
       tbody.appendChild(tr);
     }
@@ -4280,6 +4179,10 @@
       const el = document.getElementById(`${pid}-row-${idx}`);
       if (el) el.remove();
       delete state.pieceData[idx];
+      // ✅ ERP: if billed row is deleted, also remove from billedRowIds
+      ensureBillState(co, dk);
+      const bs = billState[co][dk];
+      bs.billedRowIds = bs.billedRowIds.filter(i => i !== idx);
       document.querySelectorAll(`#${pid}-tbody tr`).forEach((tr,i)=>{
         const nc=tr.querySelector('td:first-child');if(nc)nc.textContent=i+1;
       });
@@ -4300,9 +4203,9 @@
       // NEW MENDING FORMULA: (Inches ÷ Rate) × 100
       const pidParts = pid.split('__');
       const co = pidParts[0];
-      const mendRate = parseFloat(document.getElementById(pid+'-mendrate')?.value)||0;
-      // ✅ NEW FORMULA: Mend Amount = (Inches ÷ Rate) × 100
-      const mendAmt  = mendRate > 0 ? r2((mendY / mendRate) * 100) : 0;
+      const mendRate = parseFloat(document.getElementById(pid+'-mendrate')?.value)||38;
+      // ✅ FORMULA: Mend Amount = (Inches ÷ Rate) × 100  [default rate=38 if blank]
+      const mendAmt  = mendY > 0 ? r2((mendY / mendRate) * 100) : 0;
       if(row.querySelector('.mendAmt')) row.querySelector('.mendAmt').textContent = mendAmt.toFixed(2);
       // OK = Total - PinLess - Shortage - Return
       const ok  = r2(tm - pl - sh - ret);
@@ -4333,8 +4236,6 @@
         totalAmt +=parseFloat(r.querySelector('.amt')?.textContent)||0;
       });
       const fabricAmt = r2(totalAmt - totalMend);
-      // ✅ FIX: fabricAmt is correctly OK × Rate (from row calc), totalMend is separate
-      // Use 5% GST as display preview (actual GST set in billing modal)
       const gst       = r2(totalAmt * 0.05);
       const finalAmt  = r2(totalAmt + gst);
       const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
@@ -4342,15 +4243,30 @@
       set(pid+'-grandPL',    r2(totalPL).toFixed(2));
       set(pid+'-grandSH',    r2(totalSH).toFixed(2));
       set(pid+'-grandRet',   r2(totalRet).toFixed(2));
-      set(pid+'-grandMend',  '₹'+r2(totalMend).toFixed(2));
-      set(pid+'-grandFab',   '₹'+r2(fabricAmt).toFixed(2));
+      set(pid+'-grandMend',  '&#8377;'+r2(totalMend).toFixed(2));
+      set(pid+'-grandFab',   '&#8377;'+r2(fabricAmt).toFixed(2));
       set(pid+'-grandOK',    r2(totalOK).toFixed(2));
       set(pid+'-grandAmt',   r2(totalAmt).toFixed(2));
       set(pid+'-grandGST',   r2(gst).toFixed(2));
       set(pid+'-grandFinal', r2(finalAmt).toFixed(2));
-      // Store current final for part billing
       const pg = document.getElementById('page-'+pid);
       if(pg) pg.dataset.currentFinal = finalAmt;
+      // MR/OK RATIO: totalMend / totalOK — warn if > 0.30
+      const mrOkRatio = totalOK > 0 ? r2(totalMend / totalOK) : 0;
+      const ratioEl   = document.getElementById(pid+'-mrOkRatio');
+      const badgeEl   = document.getElementById(pid+'-mrOkBadge');
+      if(ratioEl) {
+        ratioEl.textContent = mrOkRatio.toFixed(2);
+        ratioEl.style.color = mrOkRatio > 0.30 ? '#f39c12' : '#2ecc71';
+      }
+      if(badgeEl) {
+        if(mrOkRatio > 0.30) {
+          badgeEl.style.display = 'inline-flex';
+          badgeEl.title = 'MR/OK Ratio ' + mrOkRatio.toFixed(2) + ' exceeds 0.30 — High mending detected!';
+        } else {
+          badgeEl.style.display = 'none';
+        }
+      }
     }
 
     function filterRegRows(pid) {
@@ -4443,7 +4359,7 @@
         ok  +=parseFloat(r.querySelector('.ok')?.textContent)||0;
         amt +=parseFloat(r.querySelector('.amt')?.textContent)||0;
         sh  +=parseFloat(r.querySelector('.short')?.value)||0;
-        men +=parseFloat(r.querySelector('.mending')?.value)||0;
+        men +=parseFloat(r.querySelector('.mendY')?.value)||0;
         ret +=parseFloat(r.querySelector('.ret')?.value)||0;
         mendAmt+=parseFloat(r.querySelector('.mendAmt')?.textContent)||0;
       });
@@ -4482,7 +4398,8 @@
         rows.push([i+1,r.querySelector('.dcno')?.value||'',r.querySelector('.dateIn')?.value||'',
           r.querySelector('.pieces')?.value||'',parseFloat(r.querySelector('.tm')?.value)||0,
           parseFloat(r.querySelector('.pl')?.value)||0,parseFloat(r.querySelector('.short')?.value)||0,
-          parseFloat(r.querySelector('.mending')?.value)||0,parseFloat(r.querySelector('.ok')?.textContent)||0,
+          parseFloat(r.querySelector('.ret')?.value)||0,parseFloat(r.querySelector('.mendY')?.value)||0,
+          parseFloat(r.querySelector('.mendAmt')?.textContent)||0,parseFloat(r.querySelector('.ok')?.textContent)||0,
           parseFloat(r.querySelector('.rate')?.value)||0,parseFloat(r.querySelector('.amt')?.textContent)||0,
           r.querySelector('.stage')?.textContent||'Pending']);
       });
@@ -4870,7 +4787,6 @@
               date:r?.querySelector('.dateIn')?.value||'',
               pieces:r?.querySelector('.pieces')?.value||'1',
               short:r?.querySelector('.short')?.value||'',
-              mending:r?.querySelector('.mending')?.value||'',
               mendY:r?.querySelector('.mendY')?.value||'',
               ret:r?.querySelector('.ret')?.value||'',
               rate:r?.querySelector('.rate')?.value||'',
@@ -4886,13 +4802,17 @@
           ['cname','count','construction','pickrate','mtrsrate','crumb','mendrate','lastdate','weaver'].forEach(f=>{
             inf[f]=document.getElementById(`${pid}-${f}`)?.value||'';
           });
-          designRegData[co][dk]={dn,rows,rowCount:state.rowCount,infoFields:inf};
+          designRegData[co][dk]={dn,rows,rowCount:state.rowCount,infoFields:inf,
+            // ✅ ERP: persist per-row billed status in DOM too
+            billedRowIds: (billState[co]?.[dk]?.billedRowIds)||[]
+          };
         });
       });
       try{
         localStorage.setItem('texweave_v5',JSON.stringify({
           savedAt:new Date().toISOString(),
-          weavers,designs,companies,companyDesigns,dailyEntries,designData,designRegData
+          weavers,designs,companies,companyDesigns,dailyEntries,designData,designRegData,
+          billState  // ✅ ERP: persist full billState (includes billedRowIds, orderValue, history)
         }));
         flashSaved();
       }catch(e){console.warn('Save failed',e);}
@@ -4923,6 +4843,17 @@
         if(data.designData)   designData=data.designData;
         if(data.companyDesigns) companyDesigns=data.companyDesigns;
         getCompanyIds().forEach(co=>{if(!companyDesigns[co])companyDesigns[co]=[];});
+        // ✅ ERP: Restore billState (includes billedRowIds, orderValue, history)
+        if(data.billState) {
+          billState = data.billState;
+          // Patch any old entries that don't have new fields
+          Object.keys(billState).forEach(co=>{
+            Object.keys(billState[co]||{}).forEach(dk=>{
+              if(!billState[co][dk].billedRowIds) billState[co][dk].billedRowIds = [];
+              if(!billState[co][dk].orderValue)   billState[co][dk].orderValue   = 0;
+            });
+          });
+        }
         if(data.designRegData){
           getCompanyIds().forEach(co=>{
             ensureCoState(co);
@@ -4974,10 +4905,21 @@
             const setF=(cls,v)=>{const el=row.querySelector('.'+cls);if(el&&v!==''&&v!==undefined)el.value=v;};
             const setT=(cls,v)=>{const el=row.querySelector('.'+cls);if(el)el.textContent=v;};
             setF('dateIn',rd.date);setF('pieces',rd.pieces);setF('short',rd.short);
-            setF('mending',rd.mending);setF('mendY',rd.mendY||'');setF('ret',rd.ret||'');setF('rate',rd.rate);setF('tm',rd.tm);setF('pl',rd.pl);
+            setF('mendY',rd.mendY||'');setF('ret',rd.ret||'');setF('rate',rd.rate);setF('tm',rd.tm);setF('pl',rd.pl);
             if(rd.dcno!==undefined){const dc=row.querySelector('.dcno');if(dc)dc.value=rd.dcno;}
             setT('ok',rd.ok);setT('amt',rd.amt);
             if(rd.stageClass){const s=row.querySelector('.stage');if(s){s.className=rd.stageClass;s.textContent=rd.stageText||'Pending';}}
+          });
+          // ✅ ERP: Restore billed row visual indicators (green tint + badge)
+          const billedIds = billState[co]?.[dk]?.billedRowIds || [];
+          billedIds.forEach(idx=>{
+            const row=document.getElementById(`${pid}-row-${idx}`);
+            if(row){
+              row.dataset.billed='true';
+              row.style.background='rgba(46,204,113,.06)';
+              const badge=row.querySelector('.billedBadge');
+              if(badge) badge.style.display='inline-block';
+            }
           });
           updateGrandTotal(pid);
         });
@@ -4994,7 +4936,7 @@
 
       document.addEventListener('input',function(e){
         const t=e.target;
-        if(t.classList.contains('short')||t.classList.contains('mending')||t.classList.contains('mendY')||t.classList.contains('ret')||t.classList.contains('rate')){
+        if(t.classList.contains('short')||t.classList.contains('mendY')||t.classList.contains('ret')||t.classList.contains('rate')){
           const tr=t.closest('tr');if(!tr)return;
           // row id format: {co}__{dk}-row-{idx}
           const m=tr.id.match(/^(.+)-row-(\d+)$/);
@@ -5016,6 +4958,118 @@
     })();
   </script>
 
+  <!-- ══ TELEGRAM SETUP PAGE ══ -->
+  <div class="page" id="page-telegram">
+    <div class="topBar">
+      <div>
+        <h2>✈️ Telegram Automation</h2>
+        <div class="sub">Connect your bot to send production updates, PDFs & alerts instantly</div>
+      </div>
+      <div class="topActions">
+        <span class="badge" id="tgStatusBadge" style="background:rgba(231,76,60,.18);color:#e74c3c;border-color:rgba(231,76,60,.3);">🔴 Not Connected</span>
+        <button onclick="testTelegramConnection()" style="background:rgba(41,182,246,.15);border:1px solid rgba(41,182,246,.3);color:#29b6f6;padding:5px 14px;border-radius:7px;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;">🔗 Test Connection</button>
+      </div>
+    </div>
+
+    <!-- Config Cards -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;">
+      <!-- Bot Config -->
+      <div class="panel">
+        <div class="panelHead"><h4>🤖 Bot Configuration</h4><span>Required</span></div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px;">Bot Token</label>
+            <input id="tgBotToken" type="password" placeholder="123456789:ABCDefGhIJKlm..." style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px 12px;color:white;font-family:'Outfit',sans-serif;font-size:12px;outline:none;">
+            <div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:3px;">Get from @BotFather → /newbot</div>
+          </div>
+          <div>
+            <label style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px;">Chat ID</label>
+            <input id="tgChatId" type="text" placeholder="987654321 or -100123456789" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px 12px;color:white;font-family:'Outfit',sans-serif;font-size:12px;outline:none;">
+            <div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:3px;">Get from @userinfobot · Use negative ID for groups</div>
+          </div>
+          <button onclick="saveTelegramConfig()" style="background:linear-gradient(135deg,rgba(14,124,123,.6),rgba(14,124,123,.3));border:1px solid rgba(14,124,123,.5);color:white;padding:10px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;">💾 Save Configuration</button>
+        </div>
+      </div>
+
+      <!-- Google Sheets (optional) -->
+      <div class="panel">
+        <div class="panelHead"><h4>📊 Google Sheets (Optional)</h4><span>Cloud Database</span></div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px;">Apps Script URL</label>
+            <input id="tgSheetUrl" type="text" placeholder="https://script.google.com/macros/s/.../exec" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px 12px;color:white;font-family:'Outfit',sans-serif;font-size:12px;outline:none;">
+            <div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:3px;">Auto-save all orders to your Google Sheet</div>
+          </div>
+          <!-- Auto-send toggle -->
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-size:12px;font-weight:600;">🤖 Auto-Send PDF on Bill Confirm</div>
+              <div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px;">Every confirmed bill auto-sends to Telegram</div>
+            </div>
+            <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
+              <input type="checkbox" id="tgAutoSend" style="opacity:0;width:0;height:0;" onchange="saveTelegramConfig()">
+              <span id="tgToggleSpan" style="position:absolute;inset:0;background:rgba(255,255,255,.15);border-radius:11px;transition:.3s;"></span>
+              <span id="tgToggleThumb" style="position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;"></span>
+            </label>
+          </div>
+          <button onclick="saveTelegramConfig()" style="background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.3);color:#2ecc71;padding:10px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;">✅ Save Sheet Config</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step-by-step guide -->
+    <div class="panel" style="margin-bottom:22px;">
+      <div class="panelHead"><h4>⚙️ Setup Guide</h4><span>4 Steps</span></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+        <div style="background:rgba(41,182,246,.08);border:1px solid rgba(41,182,246,.2);border-radius:10px;padding:14px;">
+          <div style="font-size:22px;margin-bottom:6px;">1️⃣</div>
+          <div style="font-size:11px;font-weight:700;color:#29b6f6;margin-bottom:4px;">Create Bot</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.5;">Open Telegram → search <strong style="color:white;">@BotFather</strong> → /newbot → copy the token</div>
+        </div>
+        <div style="background:rgba(14,124,123,.08);border:1px solid rgba(14,124,123,.2);border-radius:10px;padding:14px;">
+          <div style="font-size:22px;margin-bottom:6px;">2️⃣</div>
+          <div style="font-size:11px;font-weight:700;color:#5fd3d2;margin-bottom:4px;">Get Chat ID</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.5;">Search <strong style="color:white;">@userinfobot</strong> → Start → copy your ID (negative = group)</div>
+        </div>
+        <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:14px;">
+          <div style="font-size:22px;margin-bottom:6px;">3️⃣</div>
+          <div style="font-size:11px;font-weight:700;color:var(--gold2);margin-bottom:4px;">Paste Here</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.5;">Enter Bot Token + Chat ID above and click <strong style="color:white;">Save Configuration</strong></div>
+        </div>
+        <div style="background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.2);border-radius:10px;padding:14px;">
+          <div style="font-size:22px;margin-bottom:6px;">4️⃣</div>
+          <div style="font-size:11px;font-weight:700;color:#2ecc71;margin-bottom:4px;">Test & Go!</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.5;">Click <strong style="color:white;">Test Connection</strong> to verify, then use buttons in any invoice</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Button descriptions -->
+    <div class="panel">
+      <div class="panelHead"><h4>🚀 What Each Button Does</h4><span>On every invoice</span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+        <div style="background:rgba(41,182,246,.07);border:1px solid rgba(41,182,246,.15);border-radius:10px;padding:16px;">
+          <div style="font-size:20px;margin-bottom:6px;">📤</div>
+          <div style="font-size:13px;font-weight:700;color:#29b6f6;margin-bottom:6px;">TG Update (Text)</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.45);line-height:1.6;">Sends a formatted production summary message: company, design, order qty, OK meter, billing amount &amp; smart alerts.</div>
+          <div style="margin-top:8px;font-size:9px;color:rgba(255,255,255,.25);">✔ Quick status · ✔ Daily report · ✔ Instant alert</div>
+        </div>
+        <div style="background:rgba(155,89,182,.07);border:1px solid rgba(155,89,182,.2);border-radius:10px;padding:16px;">
+          <div style="font-size:20px;margin-bottom:6px;">📸</div>
+          <div style="font-size:13px;font-weight:700;color:#c084fc;margin-bottom:6px;">Screenshot</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.45);line-height:1.6;">Captures the invoice as a full-resolution PNG and downloads it. Share manually in Telegram or WhatsApp.</div>
+          <div style="margin-top:8px;font-size:9px;color:rgba(255,255,255,.25);">✔ Visual proof · ✔ Quick share · ✔ No PDF needed</div>
+        </div>
+        <div style="background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.2);border-radius:10px;padding:16px;">
+          <div style="font-size:20px;margin-bottom:6px;">📄</div>
+          <div style="font-size:13px;font-weight:700;color:#e74c3c;margin-bottom:6px;">Send PDF</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.45);line-height:1.6;">Generates the invoice as a PDF and sends it directly to your Telegram chat — official document, full details.</div>
+          <div style="margin-top:8px;font-size:9px;color:rgba(255,255,255,.25);">✔ Client share · ✔ Record keeping · ✔ Automatic</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ══ BILLING MODAL ══ -->
   <div class="modal" id="billingModal" style="display:none;" onclick="if(event.target===this)closeBillingModal()">
     <div class="modalBox" style="max-width:560px;max-height:90vh;overflow-y:auto;">
@@ -5036,7 +5090,8 @@
 
   <script>
     // ══ BILLING STATE (stored per design register) ══
-    // billState[co][dk] = { lastFinalTotal: 0, billHistory: [], billCounter: 0 }
+    // billState[co][dk] = { lastFinalTotal: 0, billHistory: [], billCounter: 0, orderValue: 0 }
+    // ✅ ERP-LEVEL: Each bill records which rows (by idx) were included → prevents double billing
     let billState = {};
     // ══ AUDIT LOG ══
     let auditLog = [];
@@ -5054,7 +5109,16 @@
 
     function ensureBillState(co, dk) {
       if(!billState[co]) billState[co] = {};
-      if(!billState[co][dk]) billState[co][dk] = { lastFinalTotal: 0, billHistory: [], billCounter: 0 };
+      if(!billState[co][dk]) billState[co][dk] = {
+        lastFinalTotal: 0,
+        billHistory: [],
+        billCounter: 0,
+        orderValue: 0,       // ✅ ERP: order value for overbilling check
+        billedRowIds: []     // ✅ ERP: list of row-idx already billed (prevents double-billing)
+      };
+      // Patch old saves that don't have the new fields
+      if(!billState[co][dk].billedRowIds) billState[co][dk].billedRowIds = [];
+      if(!billState[co][dk].orderValue) billState[co][dk].orderValue = 0;
     }
 
 
@@ -5094,12 +5158,29 @@
           + '<td>' + actionBtns + '</td>'
           + '</tr>';
       });
+      var totalBilled = 0;
+      bs.billHistory.forEach(function(b){totalBilled += b.isCreditNote ? -Math.abs(b.partBill) : (b.partBill||0);});
+      var totalPaid = 0;
+      bs.billHistory.forEach(function(b){totalPaid += (b.paid||0);});
+      var safeCoStr = co; var safeDNStr = dn.replace(/'/g,"&#39;");
       return '<div style="margin-top:18px">'
-        + '<div style="font-size:10px;color:rgba(255,255,255,.35);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">&#128203; Bill History</div>'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'
+        + '<div style="font-size:10px;color:rgba(255,255,255,.35);font-weight:700;text-transform:uppercase;letter-spacing:1px">&#128203; Bill History (' + bs.billHistory.length + ')</div>'
+        + '<div style="display:flex;gap:6px;">'
+        + '<button onclick="var a=prompt(\'Credit Note Amount (₹):\');if(a&&!isNaN(a))issueCreditNote(\'' + safeCoStr + '\',\'' + safeDNStr + '\',parseFloat(a))" style="background:rgba(231,76,60,.2);color:#ff9f8e;border:1px solid rgba(231,76,60,.3);padding:4px 10px;border-radius:6px;font-size:10px;cursor:pointer;font-family:Outfit,sans-serif;">📋 Credit Note</button>'
+        + '<button onclick="if(confirm(\'Reset ALL billing locks for this design? Bill history will be cleared and rows unlocked. This cannot be undone.\'))resetBillingState(\'' + safeCoStr + '\',\'' + safeDNStr + '\')" style="background:rgba(255,165,0,.12);color:#ffa500;border:1px solid rgba(255,165,0,.25);padding:4px 10px;border-radius:6px;font-size:10px;cursor:pointer;font-family:Outfit,sans-serif;">🔓 Reset</button>'
+        + '</div>'
+        + '</div>'
         + '<table class="billHistTable">'
         + '<thead><tr><th>Bill No</th><th>Date</th><th>Part Bill &#8377;</th><th>Paid &#8377;</th><th>Balance &#8377;</th><th></th></tr></thead>'
         + '<tbody>' + rows + '</tbody>'
-        + '</table></div>';
+        + '</table>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px;">'
+        + '<div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px 12px;text-align:center;"><div style="font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;">Total Billed</div><div style="font-size:15px;font-weight:700;color:var(--gold2);">&#8377;' + r2(totalBilled).toFixed(2) + '</div></div>'
+        + '<div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px 12px;text-align:center;"><div style="font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;">Total Paid</div><div style="font-size:15px;font-weight:700;color:#2ecc8e;">&#8377;' + r2(totalPaid).toFixed(2) + '</div></div>'
+        + '<div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px 12px;text-align:center;"><div style="font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;">Outstanding</div><div style="font-size:15px;font-weight:700;color:#e74c3c;">&#8377;' + r2(totalBilled - totalPaid).toFixed(2) + '</div></div>'
+        + '</div>'
+        + '</div>';
     }
 
 
@@ -5114,52 +5195,60 @@
       ensureBillState(co, dk);
       const bs  = billState[co][dk];
 
-      // Gather current totals (only unbilled rows by default, toggle-able)
-      const showAll = window._billingShowAll || false;
-      let totalAmt=0, totalMend=0, totalOK=0, rowCount=0, unbilledCount=0, totalFabric=0;
+      // ✅ ERP STEP 1: Collect ONLY unbilled rows (rows NOT in bs.billedRowIds)
       const regMtrsRate = parseFloat(document.getElementById(pid+'-mtrsrate')?.value)||0;
+      let unbilledRows = [];
+      let allRows = [];
       document.querySelectorAll(`#${pid}-tbody tr`).forEach(r => {
         if(r.classList.contains('filtered-out')) return;
-        const isBilled = r.dataset.billed === 'true';
-        if (!showAll && isBilled) return;
-        unbilledCount++;
+        const rowIdx = parseInt(r.dataset.idx);
         const rowAmt  = parseFloat(r.querySelector('.amt')?.textContent)||0;
         const rowMend = parseFloat(r.querySelector('.mendAmt')?.textContent)||0;
         const rowOK   = parseFloat(r.querySelector('.ok')?.textContent)||0;
         const rowRate = parseFloat(r.querySelector('.rate')?.value)||0;
-        // ✅ FIX: if row rate is 0, use register mtrsRate for fabric calculation
         const effectiveRate = rowRate > 0 ? rowRate : regMtrsRate;
         const rowFab  = r2(rowOK * effectiveRate);
-        totalFabric += rowFab;
-        // Recalculate row amount using effective rate if needed
         const correctedAmt = r2(rowFab + rowMend);
-        totalAmt  += correctedAmt;
-        totalMend += rowMend;
-        totalOK   += rowOK;
-        rowCount++;
+        const rowInfo = { rowIdx, rowAmt: correctedAmt, rowMend, rowOK, rowFab };
+        allRows.push(rowInfo);
+        const alreadyBilled = bs.billedRowIds.includes(rowIdx);
+        if (!alreadyBilled) unbilledRows.push(rowInfo);
       });
 
-      const gstRate    = 5;
-      const discount   = 0;
-      const transport  = 0;
-      const packing    = 0;
-      // ✅ FIX: fabricAmt = OK Meter × Rate (already computed per-row above)
-      const fabricAmt  = r2(totalFabric);
-      const gst        = r2((totalAmt - discount) * (gstRate/100));
-      const finalTotal = r2(totalAmt - discount + transport + packing + gst);
-      // ✅ FIX: Correct part bill = current cumulative − previously billed
-      const rawPartBill  = r2(finalTotal - bs.lastFinalTotal);
-      const isCredit     = rawPartBill < 0;         // overbilled: current < previous
-      const isSameAmt    = rawPartBill === 0;
-      const partBill     = isCredit ? 0 : rawPartBill;   // never allow negative bill
-      const adjustment   = isCredit ? rawPartBill : 0;   // negative = credit amount
-      const billNo       = `PB${String(bs.billCounter + 1).padStart(3,'0')}`;
+      // ✅ ERP STEP 2: Calculate CURRENT BILL from unbilled rows only
+      const currentFabric = unbilledRows.reduce((s,r)=>s+r.rowFab, 0);
+      const currentMend   = unbilledRows.reduce((s,r)=>s+r.rowMend, 0);
+      const currentOK     = unbilledRows.reduce((s,r)=>s+r.rowOK, 0);
+      const currentSubtotal = r2(currentFabric + currentMend);
 
-      // Detect bill type
-      const billType = isCredit ? 'CREDIT NOTE' :
-                       isSameAmt ? 'NO CHANGE' :
-                       bs.billHistory.length === 0 ? 'FIRST BILL' :
-                       (rawPartBill === finalTotal ? 'FULL BILL' : 'PART BILL');
+      const gstRate   = 5;
+      const discount  = 0;
+      const transport = 0;
+      const packing   = 0;
+      const gst        = r2(currentSubtotal * (gstRate/100));
+      const currentBillTotal = r2(currentSubtotal + gst); // This Part Bill
+
+      // ✅ ERP STEP 3: Previously billed (sum of all past bills minus credit notes)
+      const previousBilled = r2(bs.billHistory.reduce((sum, b) => {
+        if(b.isCreditNote) return sum - Math.abs(b.partBill);
+        return sum + b.partBill;
+      }, 0));
+
+      // ✅ ERP STEP 4: Cumulative Total
+      const cumulativeTotal = r2(previousBilled + currentBillTotal);
+
+      // ✅ ERP STEP 5: Order value overbilling check
+      const orderValue = bs.orderValue || 0;
+      const remaining  = orderValue > 0 ? r2(orderValue - cumulativeTotal) : null;
+      const isOverbilling = orderValue > 0 && cumulativeTotal > orderValue;
+
+      const partBill = currentBillTotal;
+      const isCredit = false; // credit notes are separate flow
+      const isSameAmt = partBill === 0;
+      const billNo = `PB${String(bs.billCounter + 1).padStart(3,'0')}`;
+
+      const billType = isSameAmt ? 'NO UNBILLED ENTRIES' :
+                       bs.billHistory.length === 0 ? 'FIRST BILL' : 'PART BILL';
 
       const content = document.getElementById('billingModalContent');
       content.innerHTML = `
@@ -5167,17 +5256,62 @@
           <h4>📊 Current Bill Summary
             <span style="background:#c9a84c;color:#0d2d4a;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:1px;margin-left:8px;">${billType}</span>
           </h4>
-          <div class="billGrid">
-            <div class="billCard"><div class="bv" style="color:var(--gold2);">${r2(totalOK).toFixed(2)}</div><div class="bl">OK Meter</div></div>
-            <div class="billCard"><div class="bv" style="color:#c084fc;">₹${r2(totalMend).toFixed(2)}</div><div class="bl">Mending</div></div>
-            <div class="billCard"><div class="bv" style="color:#2ecc8e;">₹${r2(fabricAmt).toFixed(2)}</div><div class="bl">Fabric Amt</div></div>
-            <div class="billCard"><div class="bv" style="color:#5fd3d2;">₹${r2(totalAmt).toFixed(2)}</div><div class="bl">Subtotal</div></div>
+
+          <!-- ✅ ERP SUMMARY CARDS -->
+          <div class="billGrid" style="grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
+            <div class="billCard"><div class="bv" style="color:var(--gold2);">${r2(currentOK).toFixed(2)} m</div><div class="bl">Unbilled OK Meter</div></div>
+            <div class="billCard"><div class="bv" style="color:#2ecc8e;">₹${r2(currentFabric).toFixed(2)}</div><div class="bl">Fabric Amount</div></div>
+            <div class="billCard"><div class="bv" style="color:#c084fc;">₹${r2(currentMend).toFixed(2)}</div><div class="bl">Mending</div></div>
           </div>
 
-          <!-- ADVANCED CALC PANEL -->
+          <!-- ✅ ERP BILLING BREAKDOWN (the 5 key numbers) -->
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden;margin-bottom:14px;">
+            <div style="padding:10px 16px;background:rgba(14,124,123,.12);border-bottom:1px solid rgba(255,255,255,.08);">
+              <span style="font-size:10px;font-weight:700;color:#5fd3d2;text-transform:uppercase;letter-spacing:1px;">💰 Billing Breakdown — ${unbilledRows.length} Unbilled Entries</span>
+            </div>
+            <div style="padding:14px 16px;display:grid;gap:9px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:12px;color:rgba(255,255,255,.6);">Subtotal (Fabric + Mending)</span>
+                <span style="font-size:14px;font-weight:700;color:white;">₹${r2(currentSubtotal).toFixed(2)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:12px;color:rgba(255,255,255,.6);">GST (5%)</span>
+                <span style="font-size:13px;font-weight:600;color:#e67e22;">+ ₹${r2(gst).toFixed(2)}</span>
+              </div>
+              <div style="height:1px;background:rgba(255,255,255,.08);"></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(201,168,76,.12);margin:-2px;padding:10px 12px;border-radius:8px;">
+                <span style="font-size:13px;font-weight:700;color:var(--gold2);">🧾 This Part Bill</span>
+                <span id="b-partbill" style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--gold2);">₹${r2(currentBillTotal).toFixed(2)}</span>
+              </div>
+              <div style="height:1px;background:rgba(255,255,255,.08);"></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:12px;color:rgba(255,255,255,.5);">Previously Billed (${bs.billHistory.filter(b=>!b.isCreditNote).length} bill(s))</span>
+                <span style="font-size:13px;font-weight:600;color:rgba(255,255,255,.5);">₹${r2(previousBilled).toFixed(2)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(46,204,113,.08);padding:8px 12px;border-radius:8px;">
+                <span style="font-size:13px;font-weight:700;color:#2ecc8e;">📈 Cumulative Total</span>
+                <span id="b-cum" style="font-size:18px;font-weight:800;color:#2ecc8e;">₹${r2(cumulativeTotal).toFixed(2)}</span>
+              </div>
+              ${orderValue > 0 ? `
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:12px;color:rgba(255,255,255,.5);">Order Value</span>
+                <span style="font-size:13px;font-weight:600;color:#5fd3d2;">₹${r2(orderValue).toFixed(2)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;background:${remaining >= 0 ? 'rgba(46,204,113,.08)' : 'rgba(231,76,60,.1)'};padding:8px 12px;border-radius:8px;">
+                <span style="font-size:12px;font-weight:700;color:${remaining >= 0 ? '#2ecc8e' : '#e74c3c'};">Remaining</span>
+                <span style="font-size:14px;font-weight:700;color:${remaining >= 0 ? '#2ecc8e' : '#e74c3c'};">₹${r2(Math.abs(remaining)).toFixed(2)} ${remaining < 0 ? '(OVER)' : ''}</span>
+              </div>` : ''}
+            </div>
+          </div>
+
+          <!-- ✅ Advanced config -->
           <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;margin-bottom:14px;">
             <div style="font-size:10px;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">⚙️ Bill Configuration</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div>
+                <label style="font-size:10px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px;">Order Value ₹ (for overbilling check)</label>
+                <input type="number" id="bill-order-value" value="${orderValue||''}" min="0" placeholder="Enter total order value" onchange="recalcBillingModal('${co}','${dn}')" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:8px;font-size:12px;color:white;font-family:'Outfit',sans-serif;">
+              </div>
               <div>
                 <label style="font-size:10px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px;">GST Rate %</label>
                 <select id="bill-gst-rate" onchange="recalcBillingModal('${co}','${dn}')" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:8px;font-size:12px;color:white;font-family:'Outfit',sans-serif;">
@@ -5188,89 +5322,34 @@
                   <option value="28">28%</option>
                 </select>
               </div>
-              <div>
-                <label style="font-size:10px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px;">Discount ₹</label>
-                <input type="number" id="bill-discount" value="0" min="0" onchange="recalcBillingModal('${co}','${dn}')" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:8px;font-size:12px;color:white;font-family:'Outfit',sans-serif;">
-              </div>
-              <div>
-                <label style="font-size:10px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px;">Transport / Extra ₹</label>
-                <input type="number" id="bill-transport" value="0" min="0" onchange="recalcBillingModal('${co}','${dn}')" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:8px;font-size:12px;color:white;font-family:'Outfit',sans-serif;">
-              </div>
-            </div>
-            <div style="margin-top:10px;">
-              <label style="font-size:10px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px;">Packing Charges ₹</label>
-              <input type="number" id="bill-packing" value="0" min="0" onchange="recalcBillingModal('${co}','${dn}')" style="width:160px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:8px;font-size:12px;color:white;font-family:'Outfit',sans-serif;">
-              &nbsp;&nbsp;
-              <label style="font-size:10px;color:rgba(255,255,255,.5);">
-                <input type="checkbox" id="bill-show-all" ${showAll?'checked':''} onchange="window._billingShowAll=this.checked;openBillingModal('${co}','${dn}')"> Include already-billed rows
-              </label>
             </div>
           </div>
 
-          <div id="bill-totals-panel">
-            <div class="billTotalsRow">
-              <div class="billTotalBox"><label>GST (<span id="gst-rate-lbl">5</span>%)</label><span id="b-gst" style="color:#e67e22;">₹${r2(gst).toFixed(2)}</span></div>
-              <div class="billTotalBox"><label>Cumulative Total</label><span id="b-cum" style="color:var(--gold2);">₹${r2(finalTotal).toFixed(2)}</span></div>
-              <div class="billTotalBox"><label>Previous Billed</label><span style="color:rgba(255,255,255,.5);">₹${r2(bs.lastFinalTotal).toFixed(2)}</span></div>
-            </div>
+          ${isOverbilling ? `
+          <div style="background:rgba(231,76,60,.12);border:2px solid rgba(231,76,60,.5);border-radius:10px;padding:14px;margin-bottom:14px;">
+            <div style="font-size:12px;color:#ff6b6b;font-weight:700;">🚫 OVERBILLING BLOCKED</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:4px;">Cumulative total (₹${r2(cumulativeTotal).toFixed(2)}) exceeds Order Value (₹${r2(orderValue).toFixed(2)}).</div>
           </div>
-          ${isCredit ? `
-          <!-- ⚠️ CREDIT NOTE: current total < previously billed -->
-          <div style="background:rgba(231,76,60,.12);border:2px solid rgba(231,76,60,.5);border-radius:10px;padding:14px 18px;margin-bottom:14px;">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
-              <div style="flex:1;">
-                <div style="font-size:11px;color:#ff9f8e;font-weight:700;margin-bottom:4px;">⚠️ OVERBILLING — CREDIT NOTE REQUIRED</div>
-                <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px;line-height:1.6;">
-                  Current total (₹${r2(finalTotal).toFixed(2)}) is <strong style="color:#ff6b6b;">less</strong> than
-                  previously billed (₹${r2(bs.lastFinalTotal).toFixed(2)}).
-                  No new bill can be raised. Issue a credit note for the difference.
-                </div>
-                <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                  <div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px 16px;text-align:center;">
-                    <div style="font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Current Total</div>
-                    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:white;">₹${r2(finalTotal).toFixed(2)}</div>
-                  </div>
-                  <div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px 16px;text-align:center;">
-                    <div style="font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Previously Billed</div>
-                    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:rgba(255,255,255,.5);">₹${r2(bs.lastFinalTotal).toFixed(2)}</div>
-                  </div>
-                  <div style="background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.4);border-radius:8px;padding:10px 16px;text-align:center;">
-                    <div style="font-size:9px;color:#ff9f8e;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Adjustment (Credit)</div>
-                    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#ff6b6b;">₹${Math.abs(r2(adjustment)).toFixed(2)}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button onclick="issueCreditNote(window._cnCo, window._cnDn, window._cnAdj)" style="background:rgba(231,76,60,.3);color:#ff9f8e;border:1px solid rgba(231,76,60,.5);padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;">📋 Issue Credit Note</button>
-            <button onclick="closeBillingModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);padding:9px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">Cancel</button>
-          </div>
+          <button onclick="closeBillingModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);padding:9px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">Cancel</button>
           ` : isSameAmt ? `
-          <!-- ℹ️ NO CHANGE: current = previously billed -->
           <div style="background:rgba(52,152,219,.1);border:2px solid rgba(52,152,219,.4);border-radius:10px;padding:14px 18px;margin-bottom:14px;">
-            <div style="font-size:11px;color:#5dade2;font-weight:700;margin-bottom:4px;">ℹ️ NO CHANGE — Already fully billed</div>
-            <div style="font-size:11px;color:rgba(255,255,255,.5);">Current total matches previously billed amount. No new bill needed.</div>
-            <div style="margin-top:8px;font-size:22px;font-weight:700;color:rgba(255,255,255,.3);">₹0.00</div>
+            <div style="font-size:11px;color:#5dade2;font-weight:700;margin-bottom:4px;">ℹ️ NO UNBILLED ENTRIES</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.5);">All rows are already billed. Add new production entries first.</div>
           </div>
-          <div style="display:flex;gap:10px;">
-            <button onclick="closeBillingModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);padding:9px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">Close</button>
-          </div>
+          <button onclick="closeBillingModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);padding:9px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">Close</button>
           ` : `
-          <!-- ✅ NORMAL BILLING -->
           <div style="background:rgba(201,168,76,.12);border:2px solid rgba(201,168,76,.5);border-radius:10px;padding:14px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
             <div>
-              <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:3px;">PART BILL AMOUNT (Cumulative − Previous)</div>
-              <div id="b-partbill" style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gold2);">₹${r2(partBill).toFixed(2)}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:3px;">${unbilledRows.length} UNBILLED ENTRIES → LOCKED AFTER CONFIRM</div>
+              <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gold2);">₹${r2(partBill).toFixed(2)}</div>
             </div>
             <div style="text-align:right;">
               <div style="font-size:10px;color:rgba(255,255,255,.4);">Bill Number</div>
               <div style="font-size:20px;font-weight:700;color:#5fd3d2;">${billNo}</div>
-              <div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:2px;">${rowCount} rows | ${unbilledCount} unbilled</div>
             </div>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btnConfirmBill" onclick="confirmBillFromModal('${co}','${dn}','${billNo}')">✅ Confirm Bill (${billNo})</button>
+            <button class="btnConfirmBill" onclick="confirmBillFromModal('${co}','${dn}','${billNo}')">✅ Confirm &amp; Lock (${billNo})</button>
             <button class="btnPartBill"   onclick="printBillInvoiceFromModal('${co}','${dn}','${billNo}',false)">🖨️ Preview Invoice</button>
             <button onclick="closeBillingModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);padding:9px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">Cancel</button>
           </div>
@@ -5278,62 +5357,67 @@
         </div>
         ${bs.billHistory.length ? buildBillHistoryHTML(bs, co, dn) : ''}
       `;
-      // Store current values for recalc
-      window._currentBillContext = { co, dn, totalAmt, totalMend, totalOK, bs, billNo, fabricAmt, _finalTotal: finalTotal, _partBill: partBill, _gstRate: gstRate, _discount: discount, _transport: transport, _gst: gst };
-      window._cnCo = co; window._cnDn = dn; window._cnAdj = adjustment;
+
+      // Store current context for recalc and confirm
+      window._currentBillContext = {
+        co, dn, dk, bs, billNo,
+        totalAmt: currentSubtotal,
+        totalMend: currentMend,
+        totalOK: currentOK,
+        fabricAmt: currentFabric,
+        unbilledRowIds: unbilledRows.map(r => r.rowIdx),
+        previousBilled,
+        _finalTotal: currentBillTotal,
+        _partBill: partBill,
+        _gstRate: gstRate,
+        _discount: discount,
+        _transport: transport,
+        _gst: gst
+      };
+      window._cnCo = co; window._cnDn = dn; window._cnAdj = 0;
       document.getElementById('billingModal').style.display = 'flex';
     }
 
-    // ── Live recalc when user changes GST/Discount/Transport ──
+    // ── Live recalc when user changes GST/Order Value ──
     function recalcBillingModal(co, dn) {
       const ctx = window._currentBillContext;
       if(!ctx) return;
-      const gstRate   = parseFloat(document.getElementById('bill-gst-rate')?.value)||5;
-      const discount  = parseFloat(document.getElementById('bill-discount')?.value)||0;
-      const transport = parseFloat(document.getElementById('bill-transport')?.value)||0;
-      const packing   = parseFloat(document.getElementById('bill-packing')?.value)||0;
-      const gst        = r2((ctx.totalAmt - discount) * (gstRate/100));
-      const finalTotal = r2(ctx.totalAmt - discount + transport + packing + gst);
-      // ✅ FIX: recalc also respects credit note logic
-      const rawPB      = r2(finalTotal - ctx.bs.lastFinalTotal);
-      const partBill   = rawPB < 0 ? 0 : rawPB;
-      document.getElementById('gst-rate-lbl') && (document.getElementById('gst-rate-lbl').textContent = gstRate);
-      document.getElementById('b-gst') && (document.getElementById('b-gst').textContent = '₹'+r2(gst).toFixed(2));
-      document.getElementById('b-cum') && (document.getElementById('b-cum').textContent = '₹'+r2(finalTotal).toFixed(2));
-      document.getElementById('b-partbill') && (document.getElementById('b-partbill').textContent = (rawPB<0?'⚠️ Credit: -₹'+Math.abs(rawPB).toFixed(2):'₹'+r2(partBill).toFixed(2)));
-      window._currentBillContext._gstRate    = gstRate;
-      window._currentBillContext._discount   = discount;
-      window._currentBillContext._transport  = transport + packing;
-      window._currentBillContext._finalTotal = finalTotal;
-      window._currentBillContext._partBill   = partBill;
-      window._currentBillContext._rawPartBill= rawPB;
-      window._currentBillContext._gst        = gst;
+      const gstRate    = parseFloat(document.getElementById('bill-gst-rate')?.value)||5;
+      const orderValue = parseFloat(document.getElementById('bill-order-value')?.value)||0;
+      // Save orderValue to state so it persists
+      if(ctx.bs) ctx.bs.orderValue = orderValue;
+      const gst            = r2(ctx.totalAmt * (gstRate/100));
+      const currentBillTotal = r2(ctx.totalAmt + gst);
+      const cumulativeTotal  = r2(ctx.previousBilled + currentBillTotal);
+      const partBill         = currentBillTotal;
+      document.getElementById('b-partbill') && (document.getElementById('b-partbill').textContent = '₹'+r2(partBill).toFixed(2));
+      document.getElementById('b-cum') && (document.getElementById('b-cum').textContent = '₹'+r2(cumulativeTotal).toFixed(2));
+      ctx._finalTotal = currentBillTotal;
+      ctx._partBill   = partBill;
+      ctx._gstRate    = gstRate;
+      ctx._gst        = gst;
     }
 
     // ── Confirm from modal (reads live values) ──
     function confirmBillFromModal(co, dn, billNo) {
       const ctx      = window._currentBillContext;
       const gstRate  = parseFloat(document.getElementById('bill-gst-rate')?.value)||5;
-      const discount = parseFloat(document.getElementById('bill-discount')?.value)||0;
-      const packing  = parseFloat(document.getElementById('bill-packing')?.value)||0;
-      const transport= parseFloat(document.getElementById('bill-transport')?.value)||0;
-      const gst        = ctx._gst        ?? r2(ctx.totalAmt * gstRate/100);
-      const finalTotal = ctx._finalTotal ?? r2(ctx.totalAmt - discount + transport + packing + gst);
-      const partBill   = ctx._partBill   ?? r2(finalTotal - ctx.bs.lastFinalTotal);
-      confirmBill(co, dn, finalTotal, partBill, billNo, gstRate, discount, transport, packing);
+      const orderValue = parseFloat(document.getElementById('bill-order-value')?.value)||0;
+      if(ctx.bs) ctx.bs.orderValue = orderValue;
+      const gst         = r2(ctx.totalAmt * gstRate/100);
+      const finalTotal  = r2(ctx.totalAmt + gst);
+      const partBill    = finalTotal;
+      confirmBill(co, dn, finalTotal, partBill, billNo, gstRate, 0, 0, 0, ctx.unbilledRowIds);
     }
 
     // ── Print from modal (reads live values) ──
     function printBillInvoiceFromModal(co, dn, billNo, isReprint) {
       const ctx      = window._currentBillContext;
       const gstRate  = parseFloat(document.getElementById('bill-gst-rate')?.value)||5;
-      const discount = parseFloat(document.getElementById('bill-discount')?.value)||0;
-      const packing  = parseFloat(document.getElementById('bill-packing')?.value)||0;
-      const transport= parseFloat(document.getElementById('bill-transport')?.value)||0;
-      const gst        = r2((ctx.totalAmt - discount) * gstRate/100);
-      const finalTotal = ctx._finalTotal ?? r2(ctx.totalAmt - discount + transport + packing + gst);
-      const partBill   = ctx._partBill   ?? r2(finalTotal - ctx.bs.lastFinalTotal);
-      printBillInvoice(co, dn, finalTotal, partBill, billNo, isReprint, null, gstRate, discount, transport + packing);
+      const gst        = r2(ctx.totalAmt * gstRate/100);
+      const finalTotal = r2(ctx.totalAmt + gst);
+      const partBill   = finalTotal;
+      printBillInvoice(co, dn, finalTotal, partBill, billNo, isReprint, null, gstRate, 0, 0);
     }
 
     // ── Mark bill as paid ──
@@ -5355,50 +5439,30 @@
     }
 
 
-    // ✅ NEW: Issue Credit Note when current total < previously billed
+    // ✅ ERP: Issue Credit Note — reduces the previously billed total
     function issueCreditNote(co, dn, adjustmentAmt) {
       const dk = dKey(dn);
       ensureBillState(co, dk);
       const bs  = billState[co][dk];
       const now = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
       const cnNo = `CN${String(bs.billCounter + 1).padStart(3,'0')}`;
-      const absAdj = Math.abs(r2(adjustmentAmt));
+      const absAdj = Math.abs(r2(parseFloat(adjustmentAmt)||0));
+      if(!absAdj) { flashToast('⚠️ Enter a valid credit amount'); return; }
+      if(!confirm(`Issue Credit Note ${cnNo} for ₹${absAdj.toFixed(2)}?`)) return;
 
-      if(!confirm(`Issue Credit Note ${cnNo} for ₹${absAdj.toFixed(2)} (adjustment)?`)) return;
-
-      // Store credit note in bill history with negative partBill
       bs.billHistory.push({
-        billNo: cnNo,
-        date: now,
-        partBill: -absAdj,       // negative = credit
-        cumTotal: 0,
-        gstRate: 0,
-        discount: 0,
-        transport: 0,
-        packing: 0,
-        paid: 0,
-        balance: -absAdj,
-        isCreditNote: true
+        billNo: cnNo, date: now,
+        partBill: -absAdj,   // negative = credit
+        cumTotal: 0, gstRate: 0, discount: 0, transport: 0, packing: 0,
+        paid: 0, balance: -absAdj, isCreditNote: true
       });
-      // ✅ Reset lastFinalTotal to current actual total so next bill is correct
-      const pid = pageId(co, dn);
-      let currentTotal = 0;
-      const invMtrsRate2 = parseFloat(document.getElementById(pid+'-mtrsrate')?.value)||0;
-      document.querySelectorAll(`#${pid}-tbody tr`).forEach(r => {
-        const ok  = parseFloat(r.querySelector('.ok')?.textContent)||0;
-        const men = parseFloat(r.querySelector('.mendAmt')?.textContent)||0;
-        const rowRate2 = parseFloat(r.querySelector('.rate')?.value)||0;
-        const effRate2 = rowRate2 > 0 ? rowRate2 : invMtrsRate2;
-        currentTotal += r2(ok * effRate2) + men;
-      });
-      const gst2 = r2(currentTotal * 0.05);
-      bs.lastFinalTotal = r2(currentTotal + gst2);
       bs.billCounter++;
+      // ✅ Also update lastFinalTotal to reflect the credit
+      bs.lastFinalTotal = r2(bs.lastFinalTotal - absAdj);
 
-      auditLog.push({ action: 'BILL_MODIFIED', billNo: cnNo, co, dn, partBill: -absAdj, date: new Date().toISOString(), user: 'admin' });
+      auditLog.push({ action: 'CREDIT_NOTE', billNo: cnNo, co, dn, amount: -absAdj, date: new Date().toISOString(), user: 'admin' });
       saveAll();
-      flashToast(`📋 Credit Note ${cnNo} issued — ₹${absAdj.toFixed(2)} adjustment recorded`);
-      closeBillingModal();
+      flashToast(`📋 Credit Note ${cnNo} issued — ₹${absAdj.toFixed(2)} credited`);
       openBillingModal(co, dn);
     }
 
@@ -5406,39 +5470,89 @@
       document.getElementById('billingModal').style.display = 'none';
     }
 
-    function confirmBill(co, dn, finalTotal, partBill, billNo, gstRate, discount, transport, packing) {
-      // ── Get state FIRST before any validation that uses it ──
+    // ✅ ERP: Reset all billing locks for a design register
+    function resetBillingState(co, dn) {
+      const dk  = dKey(dn);
+      const pid = pageId(co, dn);
+      ensureBillState(co, dk);
+      const bs = billState[co][dk];
+      // Clear all bill state
+      bs.billHistory   = [];
+      bs.billCounter   = 0;
+      bs.lastFinalTotal = 0;
+      bs.billedRowIds  = [];
+      // Unlock all DOM rows
+      document.querySelectorAll(`#${pid}-tbody tr`).forEach(r => {
+        r.dataset.billed = 'false';
+        delete r.dataset.billNo;
+        r.style.background = '';
+        r.title = '';
+        const badge = r.querySelector('.billedBadge');
+        if(badge) badge.style.display = 'none';
+      });
+      auditLog.push({ action: 'BILLING_RESET', co, dn, date: new Date().toISOString(), user: 'admin' });
+      saveAll();
+      flashToast('🔓 Billing reset — all rows unlocked for ' + dn);
+      closeBillingModal();
+      openBillingModal(co, dn);
+    }
+
+    function confirmBill(co, dn, finalTotal, partBill, billNo, gstRate, discount, transport, packing, unbilledRowIds) {
+      // ── Get state FIRST ──
       const dk = dKey(dn);
       ensureBillState(co, dk);
       const bs = billState[co][dk];
       // ── Validation ──
       if(!billNo) { flashToast('⚠️ Invalid bill number'); return; }
-      if(partBill < 0) { flashToast('⚠️ Negative bill — issue a Credit Note instead'); return; }
-      if(partBill === 0) { flashToast('ℹ️ Nothing to bill — amount is ₹0.00'); return; }
-      // ✅ Safety check: prevent billing if current total < previous total
-      if(finalTotal < bs.lastFinalTotal) {
-        flashToast('🚨 Current total ₹' + r2(finalTotal).toFixed(2) + ' < Previously billed ₹' + r2(bs.lastFinalTotal).toFixed(2) + '. Issue Credit Note.');
-        return;
+      if(partBill <= 0) { flashToast('ℹ️ Nothing to bill — amount is ₹0.00'); return; }
+
+      // ✅ ERP: Overbilling check against order value
+      if(bs.orderValue > 0) {
+        const prevBilled = r2(bs.billHistory.reduce((s,b)=>b.isCreditNote?s-Math.abs(b.partBill):s+b.partBill, 0));
+        const cumulative = r2(prevBilled + partBill);
+        if(cumulative > bs.orderValue) {
+          flashToast(`🚫 Overbilling blocked! Cumulative ₹${cumulative.toFixed(2)} > Order Value ₹${bs.orderValue.toFixed(2)}`);
+          return;
+        }
       }
+
       const now = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
-      const paid = 0; // Default 0 paid on creation
-      // Save bill to history (with extra fields)
-      bs.billHistory.push({ billNo, date: now, partBill, cumTotal: finalTotal, gstRate: gstRate||5, discount: discount||0, transport: transport||0, packing: packing||0, paid, balance: partBill });
+      const paid = 0;
+
+      // Save bill to history
+      bs.billHistory.push({
+        billNo, date: now, partBill, cumTotal: finalTotal,
+        gstRate: gstRate||5, discount: discount||0,
+        transport: transport||0, packing: packing||0,
+        paid, balance: partBill
+      });
       bs.lastFinalTotal = finalTotal;
       bs.billCounter++;
-      // ── Row-level billed tracking ──
+
+      // ✅ ERP STEP 7: Lock entries — add unbilledRowIds to billedRowIds (prevents double billing)
+      const rowsToLock = unbilledRowIds || [];
+      rowsToLock.forEach(idx => {
+        if(!bs.billedRowIds.includes(idx)) bs.billedRowIds.push(idx);
+      });
+
+      // ── Visual row locking in DOM ──
       const pid = pageId(co, dn);
       document.querySelectorAll(`#${pid}-tbody tr`).forEach(r => {
-        r.dataset.billed = 'true';
-        r.dataset.billNo = billNo;
+        const rowIdx = parseInt(r.dataset.idx);
+        if(rowsToLock.includes(rowIdx)) {
+          r.dataset.billed = 'true';
+          r.dataset.billNo = billNo;
+          r.style.background = 'rgba(46,204,113,.06)';
+          r.title = `Billed: ${billNo}`;
+          const badge = r.querySelector('.billedBadge');
+          if(badge) badge.style.display = 'inline-block';
+        }
       });
+
       // ── Audit Log ──
-      auditLog.push({ action: 'BILL_CREATED', billNo, co, dn, partBill, finalTotal, date: new Date().toISOString(), user: 'admin' });
+      auditLog.push({ action: 'BILL_CREATED', billNo, co, dn, partBill, finalTotal, rowsLocked: rowsToLock.length, date: new Date().toISOString(), user: 'admin' });
       saveAll();
-      // Reset mending Y values after billing
-      document.querySelectorAll(`#${pid}-tbody tr .mendY`).forEach(el => el.value = '');
-      recalcAllRows(pid);
-      flashToast(`✅ Bill ${billNo} confirmed — ₹${r2(partBill).toFixed(2)} locked`);
+      flashToast(`✅ Bill ${billNo} confirmed — ₹${r2(partBill).toFixed(2)} locked (${rowsToLock.length} rows)`);
       closeBillingModal();
       openBillingModal(co, dn); // Reopen to show updated history
     }
@@ -5459,14 +5573,35 @@
       const usedDiscount  = discountOverride ?? billData.discount ?? 0;
       const usedTransport = transportOverride ?? billData.transport ?? 0;
 
-      // Gather table rows for invoice
+      // ✅ ERP: Gather rows for this specific invoice
+      // For reprint: only rows locked under that specific billNo
+      // For new preview: unbilled rows from context
       let rows = [], totalOK=0, totalMend=0, totalFab=0, totalTM=0, totalPL=0, totalSH=0, totalRET=0;
       const invMtrsRate = parseFloat(document.getElementById(pid+'-mtrsrate')?.value)||0;
       let rowNum = 0;
+
+      // Determine which row indices to include
+      let targetRowIds = null; // null = all billed rows for this billNo (reprint), or unbilled (new)
+      if(isReprint && reprintBillNo) {
+        // For reprint: find rows that have data-billno matching reprintBillNo
+        targetRowIds = [];
+        document.querySelectorAll(`#${pid}-tbody tr`).forEach(r => {
+          if(r.dataset.billNo === reprintBillNo) targetRowIds.push(parseInt(r.dataset.idx));
+        });
+        // Fallback: if no DOM matches (old data), use all rows
+        if(targetRowIds.length === 0) targetRowIds = null;
+      } else {
+        // New preview: use unbilled rows from current context
+        const ctx = window._currentBillContext;
+        if(ctx && ctx.unbilledRowIds) targetRowIds = ctx.unbilledRowIds;
+      }
+
       document.querySelectorAll(`#${pid}-tbody tr`).forEach((r,i) => {
         const tm  = parseFloat(r.querySelector('.tm')?.value)||0;
-        // ✅ Skip completely empty rows (no Total M entered)
         if (tm === 0) return;
+        const rowIdx = parseInt(r.dataset.idx);
+        // Filter by target rows if specified
+        if(targetRowIds !== null && !targetRowIds.includes(rowIdx)) return;
         const ok  = parseFloat(r.querySelector('.ok')?.textContent)||0;
         const men = parseFloat(r.querySelector('.mendAmt')?.textContent)||0;
         const pl  = parseFloat(r.querySelector('.pl')?.value)||0;
@@ -5487,27 +5622,31 @@
           stage: r.querySelector('.stage')?.textContent||'Pending'
         });
       });
+
       const subtotal = r2(totalFab + totalMend);
-      const gst      = r2((subtotal - usedDiscount) * (usedGstRate/100));
-      const grand    = r2(subtotal - usedDiscount + usedTransport + gst);
-      // ✅ FIX: prev = what was billed BEFORE this current bill
-      //         = lastFinalTotal MINUS this bill's partBill (the amount before this bill was added)
-      //         For reprintBillNo: find what lastFinalTotal was before that bill was issued
+      const gst      = r2(subtotal * (usedGstRate/100));
+      const grand    = r2(subtotal + gst);   // This Part Bill total (with GST)
+
+      // ✅ ERP: prev = sum of all previously confirmed bills (from bill history)
       let prev = 0;
-      if (isReprint && reprintBillNo) {
-        // For reprint: prev = cumTotal of that bill - partBill of that bill
-        prev = r2((billData.finalTotal || 0) - (billData.partBill || 0));
+      if(isReprint && reprintBillNo) {
+        // For reprint: sum all bills BEFORE this one
+        let found = false;
+        for(const b of bs.billHistory) {
+          if(b.billNo === reprintBillNo) { found = true; break; }
+          prev = r2(prev + (b.isCreditNote ? -Math.abs(b.partBill) : (b.partBill||0)));
+        }
       } else {
-        // For new bill preview: prev = current lastFinalTotal (before this bill is confirmed)
-        prev = r2(bs.lastFinalTotal);
+        // For preview: previously billed = sum of all confirmed bills
+        prev = r2(bs.billHistory.reduce((s,b) => b.isCreditNote ? s-Math.abs(b.partBill) : s+(b.partBill||0), 0));
       }
+
       const paid        = billData.paid || 0;
-      // ✅ Calculated part bill = grand (cumulative) - prev (previously billed)
-      const calcPartBill = isReprint ? billData.partBill : r2(grand - prev);
+      const calcPartBill = isReprint ? r2(billData.partBill) : grand;
+      const cumulativeTot = r2(prev + calcPartBill);
       const balance      = r2(calcPartBill - paid);
-      // ✅ billType uses calculated values
-      const billType = (prev === 0 && bs.billHistory.length === 0) ? 'FIRST BILL' :
-                       (calcPartBill >= grand) ? 'FULL BILL' : 'PART BILL';
+      const billType = (prev === 0 && bs.billHistory.filter(b=>!b.isCreditNote).length === 0) ? 'FIRST BILL' :
+                       'PART BILL';
 
       const now = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
       const cname = document.getElementById(pid+'-cname')?.value || c.name;
@@ -5533,14 +5672,15 @@
         return result+' Only';
       }
 
-      // ── Store structured print data for clean print window ──
+      // ── Store structured print data ──
       window._printData = {
-        billNo: billData.billNo, partBill: r2(billData.partBill), finalTotal: r2(billData.finalTotal),
+        billNo: billData.billNo, partBill: r2(calcPartBill), finalTotal: r2(cumulativeTot),
         billType, now, cname, dn, companyName: c.name,
         count, constr,
-        gstRate: usedGstRate, discount: usedDiscount, transport: usedTransport,
+        gstRate: usedGstRate, discount: 0, transport: 0,
         subtotal, gst, grand,
-        prevBilled: r2(prev),  // ✅ FIX: use recalculated prev (correctly = lastFinalTotal before this bill)
+        prevBilled: r2(prev),
+        cumulativeTotal: r2(cumulativeTot),
         paid: r2(paid), balance: r2(balance),
         rows, billHistory: bs.billHistory || [],
         amtWords: numToWords(r2(calcPartBill)),
@@ -6048,26 +6188,26 @@
           <!-- ══ GRAND TOTAL BOXES ══ -->
           <div class="inv-grand-block">
             <div class="inv-grand-grid">
-              <div class="inv-grand-box cumulative">
-                <div>
-                  <div class="inv-grand-label">Cumulative Total</div>
-                  <div style="font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;">All bills to date</div>
-                </div>
-                <div class="inv-grand-amount">₹${r2(grand).toFixed(2)}</div>
-              </div>
               <div class="inv-grand-box previous">
                 <div>
                   <div class="inv-grand-label">Previously Billed</div>
-                  <div style="font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;">${isReprint ? (bs.billHistory.length - 1) : bs.billHistory.length} prior bill(s)</div>
+                  <div style="font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;">${isReprint ? Math.max(0, bs.billHistory.findIndex(b=>b.billNo===reprintBillNo)) : bs.billHistory.filter(b=>!b.isCreditNote).length} prior bill(s)</div>
                 </div>
                 <div class="inv-grand-amount">₹${r2(prev).toFixed(2)}</div>
               </div>
               <div class="inv-grand-box partbill">
                 <div>
                   <div class="inv-grand-label">⭐ This Part Bill</div>
-                  <div style="font-size:9px;color:#5a4010;margin-top:2px;">Amount due now</div>
+                  <div style="font-size:9px;color:#5a4010;margin-top:2px;">${rows.length} entries · Unbilled only</div>
                 </div>
                 <div class="inv-grand-amount">₹${r2(calcPartBill).toFixed(2)}</div>
+              </div>
+              <div class="inv-grand-box cumulative">
+                <div>
+                  <div class="inv-grand-label">Cumulative Total</div>
+                  <div style="font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;">Previous + This Bill</div>
+                </div>
+                <div class="inv-grand-amount">₹${r2(cumulativeTot).toFixed(2)}</div>
               </div>
             </div>
           </div>
@@ -6106,7 +6246,7 @@
               </div>
             </div>
             <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-          <div id="upiQR" style="width:90px;height:90px;" data-upi="upi://pay?pa=${companyLegal.upi}&pn=TexWeavePro&am=${isReprint ? r2(billData.partBill) : r2(grand - prev)}&tn=${billData.billNo}"></div>
+          <div id="upiQR" style="width:90px;height:90px;" data-upi="upi://pay?pa=${companyLegal.upi}&pn=TexWeavePro&am=${r2(calcPartBill)}&tn=${billData.billNo}"></div>
               <div style="font-size:8px;color:#8fa0b3;text-align:center;">Scan to Pay<br>₹${r2(calcPartBill).toFixed(2)}</div>
             </div>
           </div>
@@ -6404,11 +6544,11 @@
       html += '<div style="display:flex;justify-content:space-between;background:#f4f8fc;padding:6px 8px;border-radius:5px;margin-top:3px"><span style="font-weight:800;font-size:12px;color:#0d3a5c">Grand Total</span><span style="font-weight:800;font-size:14px;color:#0d3a5c">&#8377;' + n2(d.grand) + '</span></div>';
       html += '</div></div>';
 
-      // GRAND BOXES
+      // GRAND BOXES — ERP: This Part Bill | Previously Billed | Cumulative Total
       html += '<div class="grand">';
-      html += '<div class="gb c1"><div><div class="gl">Cumulative Total</div><div class="gs">All bills</div></div><div class="ga">&#8377;' + n2(d.grand) + '</div></div>';
-      html += '<div class="gb c2"><div><div class="gl">Previously Billed</div><div class="gs">' + d.billHistory.length + ' bill(s)</div></div><div class="ga">&#8377;' + n2(d.prevBilled) + '</div></div>';
-      html += '<div class="gb c3"><div><div class="gl">This Part Bill</div><div class="gs">Amount due now</div></div><div class="ga">&#8377;' + n2(d.partBill) + '</div></div>';
+      html += '<div class="gb c2"><div><div class="gl">Previously Billed</div><div class="gs">' + d.billHistory.filter(function(b){return !b.isCreditNote;}).length + ' prior bill(s)</div></div><div class="ga">&#8377;' + n2(d.prevBilled) + '</div></div>';
+      html += '<div class="gb c3"><div><div class="gl">This Part Bill</div><div class="gs">Unbilled entries only</div></div><div class="ga" style="color:#0d3a5c;font-size:20px;font-weight:800">&#8377;' + n2(d.partBill) + '</div></div>';
+      html += '<div class="gb c1"><div><div class="gl">Cumulative Total</div><div class="gs">Previous + This Bill</div></div><div class="ga">&#8377;' + n2(d.cumulativeTotal||d.finalTotal) + '</div></div>';
       html += '</div>';
 
       // WORDS
@@ -6461,15 +6601,15 @@
 
     // Extend saveAll to include billState
     const _origSaveAll = saveAll;
-    // Override saveAll to also persist billState + auditLog
-    const _saveAllOrig = saveAll;
+    // ✅ ERP v16: billState is now saved directly inside the main saveAll() above.
+    // This override just adds the auto-backup timer and auditLog persistence.
     window.addEventListener('load', () => {
       const origSave = saveAll;
       window.saveAll = function() {
         origSave.call(this);
         try {
+          // Patch auditLog into the already-saved data
           const stored = JSON.parse(localStorage.getItem('texweave_v5')||'{}');
-          stored.billState = billState;
           stored.auditLog  = auditLog;
           localStorage.setItem('texweave_v5', JSON.stringify(stored));
         } catch(e) {}
@@ -6479,19 +6619,17 @@
       setInterval(() => {
         try {
           window.saveAll();
-          // Update backup timestamp in sidebar
           const el = document.getElementById('autoBackupTime');
           if(el) el.textContent = 'Last saved: ' + new Date().toLocaleTimeString('en-IN');
         } catch(e) {}
       }, 30000);
     });
 
-    // Load billState + auditLog on init
+    // Load auditLog on init (billState now loaded from main init block)
     window.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         try {
           const data = JSON.parse(localStorage.getItem('texweave_v5')||'{}');
-          if(data.billState) billState = data.billState;
           if(data.auditLog)  auditLog  = data.auditLog;
         } catch(e) {}
       }, 200);
@@ -6529,7 +6667,7 @@
         data.billState = billState;
         data.auditLog  = auditLog;
         data.exportedAt = new Date().toISOString();
-        data.version = 'TexWeave Pro v7';
+        data.version = 'TexWeave Pro v16 (ERP Billing)';
         const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
         const url  = URL.createObjectURL(blob);
         const a    = document.createElement('a');
@@ -6572,10 +6710,10 @@
       if(!modal || !body) return;
       const rows = [...auditLog].reverse().slice(0,50);
       body.innerHTML = rows.length ? rows.map(e => {
-        const icon = {BILL_CREATED:'💳',PAYMENT_RECEIVED:'💰',BACKUP_EXPORTED:'📦',BILL_MODIFIED:'✏️'}[e.action]||'📋';
-        const color= {BILL_CREATED:'#5fd3d2',PAYMENT_RECEIVED:'#2ecc71',BACKUP_EXPORTED:'#e8c96a',BILL_MODIFIED:'#c084fc'}[e.action]||'white';
+        const icon = {BILL_CREATED:'💳',PAYMENT_RECEIVED:'💰',BACKUP_EXPORTED:'📦',BILL_MODIFIED:'✏️',CREDIT_NOTE:'📋',BILLING_RESET:'🔓'}[e.action]||'📋';
+        const color= {BILL_CREATED:'#5fd3d2',PAYMENT_RECEIVED:'#2ecc71',BACKUP_EXPORTED:'#e8c96a',BILL_MODIFIED:'#c084fc',CREDIT_NOTE:'#ff9f8e',BILLING_RESET:'#ffa500'}[e.action]||'white';
         return `<tr>
-          <td style="color:${color};font-weight:700;">${icon} ${e.action}</td>
+          <td style="color:${color};font-weight:700;">${icon} ${e.action}${e.rowsLocked!=null?' ('+e.rowsLocked+' rows)':''}</td>
           <td style="color:#5fd3d2;">${e.billNo||'—'}</td>
           <td style="color:rgba(255,255,255,.5);font-size:10px;">${e.co||'—'} · ${e.dn||'—'}</td>
           <td style="color:var(--gold2);">${e.amount?'₹'+r2(e.amount).toFixed(2):(e.partBill?'₹'+r2(e.partBill).toFixed(2):'—')}</td>
@@ -6613,14 +6751,18 @@
         });
       });
 
-      // Bill collection stats
+      // ✅ ERP: Bill collection stats — credit notes reduce totalBilled
       let totalBilled=0, totalPaid=0, totalBalance=0;
       Object.values(billState).forEach(coBills=>{
         Object.values(coBills).forEach(bs=>{
           bs.billHistory.forEach(b=>{
-            totalBilled += b.partBill||0;
-            totalPaid   += b.paid||0;
-            totalBalance+= b.balance||b.partBill||0;
+            if(b.isCreditNote) {
+              totalBilled += -(Math.abs(b.partBill)||0);
+            } else {
+              totalBilled  += b.partBill||0;
+              totalPaid    += b.paid||0;
+              totalBalance += b.balance ?? (b.partBill - (b.paid||0));
+            }
           });
         });
       });
@@ -6824,31 +6966,41 @@
 
     // ── Extract bill data from the current invoice ──
     function extractBillDataFromInvoice() {
-      const box = document.getElementById('printBillBox');
-      if (!box) return null;
-      const get = (sel) => box.querySelector(sel)?.textContent?.trim() || '';
-      // Pull key info from rendered invoice DOM
-      const company  = get('.inv-co-name') || get('h1') || 'Company';
-      const design   = get('.inv-design-name') || '';
-      const billNo   = get('.inv-bill-no') || '';
-      // Try to get totals from summary rows
-      const rows     = [...box.querySelectorAll('table tr')];
-      let totalMeter = '', okMeter = '', billingAmt = '';
-      rows.forEach(r => {
-        const cells = [...r.querySelectorAll('td,th')];
-        const label = cells.map(c=>c.textContent).join(' ').toLowerCase();
-        if (label.includes('total meter') || label.includes('total tm')) totalMeter = cells[cells.length-1]?.textContent?.trim() || '';
-        if (label.includes('ok meter') || label.includes('ok m'))       okMeter    = cells[cells.length-1]?.textContent?.trim() || '';
-        if (label.includes('part bill') || label.includes('billing'))   billingAmt = cells[cells.length-1]?.textContent?.trim() || '';
-      });
-      // Also try _printData which is richer
       const pd = window._printData;
       if (pd) {
-        totalMeter = totalMeter || (pd.rows?.reduce((s,r)=>s+(parseFloat(r.tm)||0),0).toFixed(2)+' m');
-        okMeter    = okMeter    || (pd.rows?.reduce((s,r)=>s+(parseFloat(r.ok)||0),0).toFixed(2)+' m');
-        billingAmt = billingAmt || ('₹'+(pd.partBill||pd.finalTotal||0));
+        const mrOkRatio = pd.totals.ok > 0 ? (pd.totals.men / pd.totals.ok).toFixed(2) : '0.00';
+        const mrAlert   = parseFloat(mrOkRatio) > 0.30 ? '⚠️ HIGH' : '✅ OK';
+        return {
+          company    : pd.cname || pd.companyName || '—',
+          design     : pd.dn || '—',
+          billNo     : pd.billNo || '—',
+          billType   : pd.billType || '—',
+          count      : pd.count || '—',
+          constr     : pd.constr || '—',
+          weaver     : pd.specs?.weaver || '—',
+          pickrate   : pd.specs?.pickrate ? pd.specs.pickrate + ' picks' : '—',
+          mtrsrate   : pd.specs?.mtrsrate ? '₹' + pd.specs.mtrsrate + '/m' : '—',
+          mendrate   : pd.specs?.mendrate || '38',
+          lastdate   : pd.specs?.lastdate || '—',
+          totalMeter : pd.totals.tm.toFixed(2) + ' m',
+          pinLess    : pd.totals.pl.toFixed(2) + ' m',
+          shortRet   : (pd.totals.sh + pd.totals.ret).toFixed(2) + ' m',
+          okMeter    : pd.totals.ok.toFixed(2) + ' m',
+          mendAmt    : '₹' + pd.totals.men.toFixed(2),
+          fabricAmt  : '₹' + pd.totals.fab.toFixed(2),
+          subtotal   : '₹' + pd.subtotal.toFixed(2),
+          gst        : '₹' + pd.gst.toFixed(2) + ' (' + pd.gstRate + '%)',
+          partBill   : '₹' + pd.partBill.toFixed(2),
+          prevBilled : '₹' + pd.prevBilled.toFixed(2),
+          cumTotal   : '₹' + pd.cumulativeTotal.toFixed(2),
+          amtWords   : pd.amtWords || '—',
+          mrOkRatio  : mrOkRatio,
+          mrAlert    : mrAlert,
+          billCount  : pd.billHistory ? pd.billHistory.filter(b=>!b.isCreditNote).length : 0,
+        };
       }
-      return { company, design, billNo, totalMeter, okMeter, billingAmt };
+      // Fallback if no _printData (shouldn't happen)
+      return { company:'—', design:'—', billNo:'—' };
     }
 
     // ── TG Update (Text) ──
@@ -6856,16 +7008,56 @@
       const cfg = getTGConfig();
       if (!cfg.token || !cfg.chatId) { flashToast('⚠️ Configure Telegram first — go to Telegram Setup'); return; }
       const d = extractBillDataFromInvoice() || {};
-      const now = new Date().toLocaleString('en-IN');
-      const msg = `🏭 *TexWeave Pro – Production Update*\n\n`
-        + `🏢 *Company:* ${d.company||'—'}\n`
-        + `🎨 *Design:* ${d.design||'—'}\n`
-        + `🧾 *Bill No:* ${d.billNo||'—'}\n`
-        + `📦 *Total Meter:* ${d.totalMeter||'—'}\n`
-        + `✅ *OK Meter:* ${d.okMeter||'—'}\n`
-        + `💰 *Billing Amount:* ${d.billingAmt||'—'}\n`
-        + `🕐 *Time:* ${now}\n`
-        + `\n_Sent via TexWeave Pro ERP_`;
+      const now = new Date().toLocaleString('en-IN', {
+        day:'2-digit', month:'short', year:'numeric',
+        hour:'2-digit', minute:'2-digit', hour12:true
+      });
+      const divider = '━━━━━━━━━━━━━━━━━━━━━';
+      const msg = `🏭 *TexWeave Pro — Production Bill*\n`
+        + `${divider}\n\n`
+
+        + `🏢 *Company:* ${d.company}\n`
+        + `🎨 *Design No:* ${d.design}\n`
+        + `🧾 *Bill No:* ${d.billNo}  _(${d.billType})_\n`
+        + `👨‍🔧 *Weaver:* ${d.weaver}\n\n`
+
+        + `${divider}\n`
+        + `📋 *Fabric Specs*\n`
+        + `${divider}\n`
+        + `🔢 *Count:* ${d.count}\n`
+        + `🏗️ *Construction:* ${d.constr}\n`
+        + `⚡ *Pick Rate:* ${d.pickrate}\n`
+        + `💵 *Mtrs Rate:* ${d.mtrsrate}\n`
+        + `🧵 *Mend Rate:* ${d.mendrate}\n`
+        + `📅 *Last Date:* ${d.lastdate}\n\n`
+
+        + `${divider}\n`
+        + `📦 *Production Summary*\n`
+        + `${divider}\n`
+        + `📏 *Total Meter:* ${d.totalMeter}\n`
+        + `📌 *Pin Less:* ${d.pinLess}\n`
+        + `↩️ *Short / Return:* ${d.shortRet}\n`
+        + `✅ *OK Meter:* ${d.okMeter}\n\n`
+
+        + `${divider}\n`
+        + `💰 *Bill Breakdown*\n`
+        + `${divider}\n`
+        + `🧶 *Fabric Amount:* ${d.fabricAmt}\n`
+        + `🪡 *Mending Amount:* ${d.mendAmt}\n`
+        + `📊 *MR\/OK Ratio:* ${d.mrOkRatio}  ${d.mrAlert}\n`
+        + `➕ *Subtotal:* ${d.subtotal}\n`
+        + `🏛️ *GST:* ${d.gst}\n`
+        + `💳 *This Part Bill:* *${d.partBill}*\n`
+        + `🔙 *Previously Billed:* ${d.prevBilled}\n`
+        + `📈 *Cumulative Total:* *${d.cumTotal}*\n\n`
+
+        + `${divider}\n`
+        + `🔤 *Amount in Words*\n`
+        + `_${d.amtWords}_\n\n`
+
+        + `${divider}\n`
+        + `🕐 *Sent:* ${now}\n`
+        + `_TexWeave Pro ERP — Bill ${d.billNo}_`;
       flashToast('📤 Sending text update...');
       try {
         const res = await fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
