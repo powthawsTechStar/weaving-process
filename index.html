@@ -4206,7 +4206,12 @@
       const mendRate = parseFloat(document.getElementById(pid+'-mendrate')?.value)||38;
       // ✅ FORMULA: Mend Amount = (Inches ÷ Rate) × 100  [default rate=38 if blank]
       const mendAmt  = mendY > 0 ? r2((mendY / mendRate) * 100) : 0;
-      if(row.querySelector('.mendAmt')) row.querySelector('.mendAmt').textContent = mendAmt.toFixed(2);
+      // Always display mendAmt in the row (visual only — billing depends on MR/OK ratio)
+      const mendAmtEl = row.querySelector('.mendAmt');
+      if(mendAmtEl) {
+        mendAmtEl.textContent = mendAmt.toFixed(2);
+        mendAmtEl.dataset.rawMend = mendAmt; // store raw value for ratio check
+      }
       // OK = Total - PinLess - Shortage - Return
       const ok  = r2(tm - pl - sh - ret);
       row.querySelector('.ok').textContent = ok.toFixed(2);
@@ -4219,31 +4224,54 @@
         row.querySelector('.rate').placeholder = mtrsRate.toFixed(2);
       }
       const fabricAmt = r2(ok * rate);
-      const subtotal  = r2(fabricAmt + mendAmt);
-      row.querySelector('.amt').textContent = subtotal.toFixed(2);
+      // Row subtotal: mend included/excluded decided after ratio check in updateGrandTotal
+      // For now store fabric only; updateGrandTotal will finalise .amt
+      row.querySelector('.amt').textContent = fabricAmt.toFixed(2);
+      row.dataset.fabricAmt = fabricAmt;
     }
 
     function updateGrandTotal(pid) {
-      let totalM=0,totalOK=0,totalAmt=0,totalPL=0,totalSH=0,totalRet=0,totalMend=0;
+      let totalM=0,totalOK=0,totalPL=0,totalSH=0,totalRet=0,totalMend=0,totalFab=0;
+      // PASS 1: collect raw totals (mend always summed for ratio check)
       document.querySelectorAll(`#${pid}-tbody tr`).forEach(r=>{
         if(r.classList.contains('filtered-out'))return;
         totalM   +=parseFloat(r.querySelector('.tm')?.value)||0;
         totalPL  +=parseFloat(r.querySelector('.pl')?.value)||0;
         totalSH  +=parseFloat(r.querySelector('.short')?.value)||0;
         totalRet +=parseFloat(r.querySelector('.ret')?.value)||0;
-        totalMend+=parseFloat(r.querySelector('.mendAmt')?.textContent)||0;
+        totalMend+=parseFloat(r.querySelector('.mendAmt')?.dataset?.rawMend||r.querySelector('.mendAmt')?.textContent)||0;
         totalOK  +=parseFloat(r.querySelector('.ok')?.textContent)||0;
-        totalAmt +=parseFloat(r.querySelector('.amt')?.textContent)||0;
+        totalFab +=parseFloat(r.dataset.fabricAmt||r.querySelector('.amt')?.textContent)||0;
       });
-      const fabricAmt = r2(totalAmt - totalMend);
-      const gst       = r2(totalAmt * 0.05);
-      const finalAmt  = r2(totalAmt + gst);
+      // ✅ MR/OK RATIO — calculated from raw mend vs OK meter
+      const mrOkRatio   = totalOK > 0 ? r2(totalMend / totalOK) : 0;
+      const mendIncluded = mrOkRatio > 0.30; // true = include mend in bill
+      // PASS 2: update each row's .amt based on ratio decision
+      document.querySelectorAll(`#${pid}-tbody tr`).forEach(r=>{
+        if(r.classList.contains('filtered-out'))return;
+        const fab  = parseFloat(r.dataset.fabricAmt||0);
+        const mend = parseFloat(r.querySelector('.mendAmt')?.dataset?.rawMend||0);
+        const rowAmt = mendIncluded ? r2(fab + mend) : r2(fab);
+        if(r.querySelector('.amt')) r.querySelector('.amt').textContent = rowAmt.toFixed(2);
+        // Style mendAmt cell to show included/excluded state
+        const mendEl = r.querySelector('.mendAmt');
+        if(mendEl) {
+          mendEl.style.opacity    = mendIncluded ? '1' : '0.4';
+          mendEl.style.textDecoration = mendIncluded ? 'none' : 'line-through';
+          mendEl.title = mendIncluded ? 'Mending included (MR/OK > 0.30)' : 'Mending excluded (MR/OK ≤ 0.30)';
+        }
+      });
+      const billedMend = mendIncluded ? r2(totalMend) : 0;
+      const totalAmt   = r2(totalFab + billedMend);
+      const fabricAmt  = r2(totalFab);
+      const gst        = r2(totalAmt * 0.05);
+      const finalAmt   = r2(totalAmt + gst);
       const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
       set(pid+'-grandTotal', r2(totalM).toFixed(2));
       set(pid+'-grandPL',    r2(totalPL).toFixed(2));
       set(pid+'-grandSH',    r2(totalSH).toFixed(2));
       set(pid+'-grandRet',   r2(totalRet).toFixed(2));
-      set(pid+'-grandMend',  '&#8377;'+r2(totalMend).toFixed(2));
+      set(pid+'-grandMend',  '&#8377;'+r2(billedMend).toFixed(2));
       set(pid+'-grandFab',   '&#8377;'+r2(fabricAmt).toFixed(2));
       set(pid+'-grandOK',    r2(totalOK).toFixed(2));
       set(pid+'-grandAmt',   r2(totalAmt).toFixed(2));
@@ -4251,18 +4279,19 @@
       set(pid+'-grandFinal', r2(finalAmt).toFixed(2));
       const pg = document.getElementById('page-'+pid);
       if(pg) pg.dataset.currentFinal = finalAmt;
-      // MR/OK RATIO: totalMend / totalOK — warn if > 0.30
-      const mrOkRatio = totalOK > 0 ? r2(totalMend / totalOK) : 0;
-      const ratioEl   = document.getElementById(pid+'-mrOkRatio');
-      const badgeEl   = document.getElementById(pid+'-mrOkBadge');
+      // Store ratio decision for billing modal & invoice to use
+      if(pg) { pg.dataset.mrOkRatio = mrOkRatio; pg.dataset.mendIncluded = mendIncluded; }
+      // Ratio display + badge
+      const ratioEl = document.getElementById(pid+'-mrOkRatio');
+      const badgeEl = document.getElementById(pid+'-mrOkBadge');
       if(ratioEl) {
         ratioEl.textContent = mrOkRatio.toFixed(2);
-        ratioEl.style.color = mrOkRatio > 0.30 ? '#f39c12' : '#2ecc71';
+        ratioEl.style.color = mendIncluded ? '#f39c12' : '#2ecc71';
       }
       if(badgeEl) {
-        if(mrOkRatio > 0.30) {
+        if(mendIncluded) {
           badgeEl.style.display = 'inline-flex';
-          badgeEl.title = 'MR/OK Ratio ' + mrOkRatio.toFixed(2) + ' exceeds 0.30 — High mending detected!';
+          badgeEl.title = 'MR/OK Ratio ' + mrOkRatio.toFixed(2) + ' > 0.30 — Mending INCLUDED in bill';
         } else {
           badgeEl.style.display = 'none';
         }
@@ -5199,12 +5228,22 @@
       const regMtrsRate = parseFloat(document.getElementById(pid+'-mtrsrate')?.value)||0;
       let unbilledRows = [];
       let allRows = [];
+      // First pass: collect all raw data for ratio calculation
+      let totalOKAll=0, totalMendAll=0;
+      document.querySelectorAll(`#${pid}-tbody tr`).forEach(r => {
+        if(r.classList.contains('filtered-out')) return;
+        totalOKAll   += parseFloat(r.querySelector('.ok')?.textContent)||0;
+        totalMendAll += parseFloat(r.querySelector('.mendAmt')?.dataset?.rawMend||r.querySelector('.mendAmt')?.textContent)||0;
+      });
+      // ✅ MR/OK RATIO CHECK — mend only included in bill if ratio > 0.30
+      const billMrOkRatio   = totalOKAll > 0 ? r2(totalMendAll / totalOKAll) : 0;
+      const billMendIncluded = billMrOkRatio > 0.30;
       document.querySelectorAll(`#${pid}-tbody tr`).forEach(r => {
         if(r.classList.contains('filtered-out')) return;
         const rowIdx = parseInt(r.dataset.idx);
-        const rowAmt  = parseFloat(r.querySelector('.amt')?.textContent)||0;
-        const rowMend = parseFloat(r.querySelector('.mendAmt')?.textContent)||0;
         const rowOK   = parseFloat(r.querySelector('.ok')?.textContent)||0;
+        const rowMendRaw = parseFloat(r.querySelector('.mendAmt')?.dataset?.rawMend||r.querySelector('.mendAmt')?.textContent)||0;
+        const rowMend = billMendIncluded ? rowMendRaw : 0; // exclude mend if ratio ≤ 0.30
         const rowRate = parseFloat(r.querySelector('.rate')?.value)||0;
         const effectiveRate = rowRate > 0 ? rowRate : regMtrsRate;
         const rowFab  = r2(rowOK * effectiveRate);
@@ -5217,7 +5256,7 @@
 
       // ✅ ERP STEP 2: Calculate CURRENT BILL from unbilled rows only
       const currentFabric = unbilledRows.reduce((s,r)=>s+r.rowFab, 0);
-      const currentMend   = unbilledRows.reduce((s,r)=>s+r.rowMend, 0);
+      const currentMend   = unbilledRows.reduce((s,r)=>s+r.rowMend, 0); // already 0 if ratio ≤ 0.30
       const currentOK     = unbilledRows.reduce((s,r)=>s+r.rowOK, 0);
       const currentSubtotal = r2(currentFabric + currentMend);
 
@@ -5257,11 +5296,28 @@
             <span style="background:#c9a84c;color:#0d2d4a;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:1px;margin-left:8px;">${billType}</span>
           </h4>
 
+          <!-- ✅ MR/OK RATIO BANNER -->
+          <div style="background:${billMendIncluded?'rgba(243,156,18,.12)':'rgba(46,204,113,.08)'};border:1.5px solid ${billMendIncluded?'rgba(243,156,18,.5)':'rgba(46,204,113,.3)'};border-radius:10px;padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;">📊 MR/OK Ratio</span>
+              <span style="font-size:20px;font-weight:800;color:${billMendIncluded?'#f39c12':'#2ecc71'};margin-left:10px;">${billMrOkRatio.toFixed(2)}</span>
+              <span style="font-size:10px;color:rgba(255,255,255,.4);margin-left:6px;">/ 0.30 threshold</span>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:11px;font-weight:800;color:${billMendIncluded?'#f39c12':'#2ecc71'};">
+                ${billMendIncluded?'⚠️ MENDING INCLUDED IN BILL':'✅ MENDING EXCLUDED FROM BILL'}
+              </div>
+              <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:2px;">
+                ${billMendIncluded?'Ratio > 0.30 → Mending charged':'Ratio ≤ 0.30 → Mending not charged'}
+              </div>
+            </div>
+          </div>
+
           <!-- ✅ ERP SUMMARY CARDS -->
           <div class="billGrid" style="grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
             <div class="billCard"><div class="bv" style="color:var(--gold2);">${r2(currentOK).toFixed(2)} m</div><div class="bl">Unbilled OK Meter</div></div>
             <div class="billCard"><div class="bv" style="color:#2ecc8e;">₹${r2(currentFabric).toFixed(2)}</div><div class="bl">Fabric Amount</div></div>
-            <div class="billCard"><div class="bv" style="color:#c084fc;">₹${r2(currentMend).toFixed(2)}</div><div class="bl">Mending</div></div>
+            <div class="billCard"><div class="bv" style="color:${billMendIncluded?'#c084fc':'rgba(192,132,252,0.35)'};${billMendIncluded?'':'text-decoration:line-through;'}">₹${r2(totalMendAll).toFixed(2)}</div><div class="bl">${billMendIncluded?'Mending ✅':'Mending ❌ (excluded)'}</div></div>
           </div>
 
           <!-- ✅ ERP BILLING BREAKDOWN (the 5 key numbers) -->
@@ -5596,6 +5652,15 @@
         if(ctx && ctx.unbilledRowIds) targetRowIds = ctx.unbilledRowIds;
       }
 
+      // ✅ MR/OK RATIO CHECK for invoice — compute from ALL rows first
+      let invTotalOKAll=0, invTotalMendAll=0;
+      document.querySelectorAll(`#${pid}-tbody tr`).forEach(r => {
+        invTotalOKAll   += parseFloat(r.querySelector('.ok')?.textContent)||0;
+        invTotalMendAll += parseFloat(r.querySelector('.mendAmt')?.dataset?.rawMend||r.querySelector('.mendAmt')?.textContent)||0;
+      });
+      const invMrOkRatio    = invTotalOKAll > 0 ? r2(invTotalMendAll / invTotalOKAll) : 0;
+      const invMendIncluded = invMrOkRatio > 0.30;
+
       document.querySelectorAll(`#${pid}-tbody tr`).forEach((r,i) => {
         const tm  = parseFloat(r.querySelector('.tm')?.value)||0;
         if (tm === 0) return;
@@ -5603,7 +5668,8 @@
         // Filter by target rows if specified
         if(targetRowIds !== null && !targetRowIds.includes(rowIdx)) return;
         const ok  = parseFloat(r.querySelector('.ok')?.textContent)||0;
-        const men = parseFloat(r.querySelector('.mendAmt')?.textContent)||0;
+        const menRaw = parseFloat(r.querySelector('.mendAmt')?.dataset?.rawMend||r.querySelector('.mendAmt')?.textContent)||0;
+        const men = invMendIncluded ? menRaw : 0; // exclude mend if ratio ≤ 0.30
         const pl  = parseFloat(r.querySelector('.pl')?.value)||0;
         const sh  = parseFloat(r.querySelector('.short')?.value)||0;
         const ret = parseFloat(r.querySelector('.ret')?.value)||0;
@@ -6968,8 +7034,9 @@
     function extractBillDataFromInvoice() {
       const pd = window._printData;
       if (pd) {
-        const mrOkRatio = pd.totals.ok > 0 ? (pd.totals.men / pd.totals.ok).toFixed(2) : '0.00';
-        const mrAlert   = parseFloat(mrOkRatio) > 0.30 ? '⚠️ HIGH' : '✅ OK';
+        const mrOkRatio    = pd.totals.ok > 0 ? (pd.totals.men / pd.totals.ok).toFixed(2) : '0.00';
+        const mendIncluded = parseFloat(mrOkRatio) > 0.30;
+        const mrAlert      = mendIncluded ? '⚠️ HIGH — Mending CHARGED' : '✅ OK — Mending NOT charged';
         return {
           company    : pd.cname || pd.companyName || '—',
           design     : pd.dn || '—',
